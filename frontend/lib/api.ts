@@ -4,6 +4,7 @@ import type {
     SinglePhaseMeasurement,
     ThreePhaseMeasurement,
     MonthlyPoint,
+    MonthlyPhasePoint,
     PeakPoint,
     Metric,
     Phase,
@@ -39,11 +40,9 @@ export function getMonthlyMeasurements(
     deviceId: string,
     metric: Metric,
     year: number,
-    month: number,
-    phase?: Phase
-): Promise<MonthlyPoint[]> {
-    const phaseParam = phase ? `&phase=${phase}` : "";
-    return fetchJson(`/measurements/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}${phaseParam}`);
+    month: number
+): Promise<(MonthlyPoint | MonthlyPhasePoint)[]> {
+    return fetchJson(`/measurements/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}`);
 }
 
 export function getPeak15min(deviceId: string, date: string): Promise<PeakPoint[]> {

@@ -1,4 +1,4 @@
-import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, PeakPoint, DeviceError } from "@/lib/types";
+import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError } from "@/lib/types";
 import DeviceSelector from "./DeviceSelector";
 import MetricDropdown from "./MetricDropdown";
 import DeviceStatusBadge from "./DeviceStatusBadge";
@@ -14,7 +14,7 @@ interface DashboardPresenterProps {
     onSelectDevice: (deviceId: string) => void;
     onSelectMetric: (metric: Metric) => void;
     realtimeData: (SinglePhaseMeasurement | ThreePhaseMeasurement)[];
-    monthlyData: MonthlyPoint[];
+    monthlyData: (MonthlyPoint | MonthlyPhasePoint)[];
     peakData: PeakPoint[];
     errors: DeviceError[];
     onResolveError: (errorId: string) => Promise<void>;
@@ -44,6 +44,7 @@ export default function DashboardPresenter({
                 <div className="flex items-center gap-3">
                     <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
                     <MetricDropdown selectedMetric={selectedMetric} onSelect={onSelectMetric} />
+
                     {selectedDevice && <DeviceStatusBadge device={selectedDevice} unresolvedErrors={errors} />}
                 </div>
             </div>
@@ -59,7 +60,7 @@ export default function DashboardPresenter({
 
                     <section>
                         <h2 className="text-lg font-semibold mb-2">월별 그래프</h2>
-                        <MonthlyChart data={monthlyData} />
+                        <MonthlyChart device={selectedDevice} metric={selectedMetric} data={monthlyData} />
                     </section>
 
                     <section>

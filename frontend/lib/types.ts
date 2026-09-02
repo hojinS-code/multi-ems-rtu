@@ -60,6 +60,13 @@ export interface MonthlyPoint {
     value: number | null;
 }
 
+export interface MonthlyPhasePoint {
+     date: string;
+     r: number | null;
+     s: number | null;
+     t: number | null;
+}
+
 // GET /measurements/peak-15min/{device_id} 응답 항목
 export interface PeakPoint {
     time: string;

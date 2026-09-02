@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement } from "@/lib/types";
+import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, phase } from "@/lib/types";
 
 interface RealtimeChartProps {
     device: Device;
@@ -10,7 +10,6 @@ interface RealtimeChartProps {
     data: (SinglePhaseMeasurement | ThreePhaseMeasurement)[];
 }
 
-type Phase = "r" | "s" | "t";
 
 function formatTime(timestamp: string): string {
     return new Date(timestamp).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });

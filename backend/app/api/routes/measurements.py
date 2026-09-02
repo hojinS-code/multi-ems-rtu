@@ -55,49 +55,82 @@ def get_monthly_measurements(
     metric: str = Query(..., description="voltage, current, power_factor, active_power, reactive_power 중 하나"),
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
-    phase: str | None = Query(None, description="3상 장비의 voltage/current 조회 시 필수: 'r', 's', 't' 중 하나"),
     db: Session = Depends(get_db),
 ):
     device = db.query(Device).filter(Device.id == device_id).first()
     if device is None:
         raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
-    
+
     if metric not in VALID_METRICS:
         raise HTTPException(status_code=400, detail=f"지원하지 않는 metric입니다: {metric}")
-    
+
+    start = datetime(year, month, 1)
+    end = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month + 1, 1)
+
     if device.device_type == "single_phase":
         model = SinglePhaseMeasurement
-        column_name = metric
+        metric_column = getattr(model, metric)
+        day = func.date_trunc(literal_column("'day'"), model.timestamp).label("day")
+
+        results = (
+            db.query(day, func.avg(metric_column).label("avg_value"))
+            .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
+            .group_by(day)
+            .order_by(day.asc())
+            .all()
+        )
+
+        return [
+            {"date": r.day.date(), "value": round(r.avg_value, 2) if r.avg_value is not None else None}
+            for r in results
+        ]
+
     elif device.device_type == "three_phase":
         model = ThreePhaseMeasurement
+        day = func.date_trunc(literal_column("'day'"), model.timestamp).label("day")
+
         if metric in ("voltage", "current"):
-            if phase not in ("r", "s", "t"):
-                raise HTTPException(
-                    status_code=400,
-                    detail="3상 장비에서 voltage/current를 조회하려면 phase(r/s/t)를 지정해야 합니다",
+            col_r = getattr(model, f"{metric}_r")
+            col_s = getattr(model, f"{metric}_s")
+            col_t = getattr(model, f"{metric}_t")
+
+            results = (
+                db.query(
+                    day,
+                    func.avg(col_r).label("r"),
+                    func.avg(col_s).label("s"),
+                    func.avg(col_t).label("t"),
                 )
-            column_name = f"{metric}_{phase}"
+                .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
+                .group_by(day)
+                .order_by(day.asc())
+                .all()
+            )
+
+            return [
+                {
+                    "date": r.day.date(),
+                    "r": round(r.r, 2) if r.r is not None else None,
+                    "s": round(r.s, 2) if r.s is not None else None,
+                    "t": round(r.t, 2) if r.t is not None else None,
+                }
+                for r in results
+            ]
         else:
-            column_name = metric
+            metric_column = getattr(model, metric)
+            results = (
+                db.query(day, func.avg(metric_column).label("avg_value"))
+                .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
+                .group_by(day)
+                .order_by(day.asc())
+                .all()
+            )
+            return [
+                {"date": r.day.date(), "value": round(r.avg_value, 2) if r.avg_value is not None else None}
+                for r in results
+            ]
     else:
         raise HTTPException(status_code=500, detail="알 수 없는 device_type입니다")
-    
-    metric_column = getattr(model, column_name)
-    
-    start = datetime(year, month, 1)
-    end = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month +1, 1)
-    
-    day = func.date_trunc(literal_column("'day'"), model.timestamp).label("day")
-    
-    results = (
-        db.query(day, func.avg(metric_column).label("avg_value"))
-        .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
-        .group_by(day)
-        .order_by(day.asc())
-        .all()
-    )
-    
-    return [{"date": r.day.date(), "value": round(r.avg_value, 2) if r.avg_value is not None else None} for r in results]
 
 
 #15min-peak 전력량 API 

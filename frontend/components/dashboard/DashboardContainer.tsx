@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, PeakPoint, DeviceError } from "@/lib/types";
+import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError } from "@/lib/types";
 import {
     getDevices,
     getRealtimeMeasurements,
@@ -18,7 +18,7 @@ export default function DashboardContainer() {
     const [selectedMetric, setSelectedMetric] = useState<Metric>("voltage");
 
     const [realtimeData, setRealtimeData] = useState<(SinglePhaseMeasurement | ThreePhaseMeasurement)[]>([]);
-    const [monthlyData, setMonthlyData] = useState<MonthlyPoint[]>([]);
+    const [monthlyData, setMonthlyData] = useState<(MonthlyPoint | MonthlyPhasePoint)[]>([]);
     const [peakData, setPeakData] = useState<PeakPoint[]>([]);
     const [errors, setErrors] = useState<DeviceError[]>([]);
 
