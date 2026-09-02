@@ -1,0 +1,135 @@
+import uuid
+from datetime import datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+from sqlalchemy import func, literal_column
+
+from db.session import get_db
+from model.device import Device
+from model.measurement import SinglePhaseMeasurement, ThreePhaseMeasurement
+from schema.measurement import SinglePhaseMeasurementResponse, ThreePhaseMeasurementResponse
+
+router = APIRouter(prefix="/measurements", tags=["measurements"])
+
+VALID_METRICS = {"voltage", "current", "power_factor", "active_power", "reactive_power" }
+
+#실시간 측정값 조회 API
+@router.get("/realtime/{device_id}")
+def get_realtime_measurements(
+    device_id: uuid.UUID,
+    metric: str = Query(..., description="voltage, current, power_factor, active_power, reactive_power 중 하나"),
+    minutes: int = Query(30, ge=1, le=1440, description="최근 몇 분간 데이터를 가져올지"),
+    db: Session = Depends(get_db),
+):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if device is None:
+        raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
+    
+    if metric not in VALID_METRICS:
+        raise HTTPException(status_code=400, detail=f"지원하지 않는 metric입니다: {metric}")
+    
+    since = datetime.utcnow() - timedelta(minutes=minutes)
+    
+    if device.device_type == "single_phase":
+        model = SinglePhaseMeasurement
+        response_schema = SinglePhaseMeasurementResponse
+    elif device.device_type == "three_phase":
+        model = ThreePhaseMeasurement
+        response_schema = ThreePhaseMeasurementResponse
+    else:
+        raise HTTPException(status_code=500, detail="알 수 없는 device_type입니다")
+    
+    records = (
+        db.query(model)
+        .filter(model.device_id == device_id, model.timestamp >= since)
+        .order_by(model.timestamp.asc())
+        .all()
+    )
+    
+    return [response_schema.model_validate(r) for r in records]
+
+#월별 조회 API추가
+@router.get("/monthly/{device_id}")
+def get_monthly_measurements(
+    device_id: uuid.UUID,
+    metric: str = Query(..., description="voltage, current, power_factor, active_power, reactive_power 중 하나"),
+    year: int = Query(..., ge=2000, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    db: Session = Depends(get_db),
+):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if device is None:
+        raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
+    
+    if metric not in VALID_METRICS:
+        raise HTTPException(status_code=400, detail=f"지원하지 않는 metric입니다: {metric}")
+    
+    if device.device_type == "single_phase":
+        model = SinglePhaseMeasurement
+    elif device.device_type == "three_phase":
+        model = ThreePhaseMeasurement
+    else:
+        raise HTTPException(status_code=500, detail="알 수 없는 device_type입니다")
+    
+    metric_column = getattr(model, metric)
+    
+    start = datetime(year, month, 1)
+    end = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month +1, 1)
+    
+    day = func.date_trunc(literal_column("'day'"), model.timestamp).label("day")
+    
+    results = (
+        db.query(day, func.avg(metric_column).label("avg_value"))
+        .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
+        .group_by(day)
+        .order_by(day.asc())
+        .all()
+    )
+    
+    return [{"date": r.day.date(), "value": round(r.avg_value, 2) if r.avg_value is not None else None} for r in results]
+
+
+#15min-peak 전력량 API 
+@router.get("/peak-15min/{device_id}")
+def get_peak_15min(
+    device_id: uuid.UUID,
+    date: str = Query(..., description="YYYY-MM-DD 형식"),
+    db: Session = Depends(get_db),
+):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if device is None:
+        raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
+    
+    if device.device_type == "single_phase":
+        model = SinglePhaseMeasurement
+    elif device.device_type == "three_phase":
+        model = ThreePhaseMeasurement
+    else:
+        raise HTTPException(status_code=500, detail="알 수 없는 device_type입니다")
+    
+    try:
+        target_date = datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="date는 YYYY-MM-DD 형식이어야 합니다")
+    
+    start = target_date
+    end = start + timedelta(days=1)
+    
+    # PostgreSQL EXTRACT(EPOCH FROM ...)로 15분(900초) 단위 구간 경계를 계산
+    bucket = func.to_timestamp(
+        
+        func.floor(func.extract("epoch", model.timestamp) / literal_column("900")) * literal_column("900")
+    ).label("bucket")
+    
+    results = (
+        db.query(bucket, func.max(model.active_power).label("peak_value"))
+        .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
+        .group_by(bucket)
+        .order_by(bucket.asc())
+        .all()
+    )
+    
+    return [
+        {"time": r.bucket.strftime("%H:%M"), "value": round(r.peak_value, 2) if r.peak_value is not None else None}
+        for r in results
+    ]

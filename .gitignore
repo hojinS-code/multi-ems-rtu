@@ -1,0 +1,10 @@
+﻿backend/app/.env
+frontend/.env.local
+__ptcache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+.next/
+.DS_Store
+Thumbs.db
