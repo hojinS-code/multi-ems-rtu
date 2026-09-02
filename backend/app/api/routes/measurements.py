@@ -55,6 +55,7 @@ def get_monthly_measurements(
     metric: str = Query(..., description="voltage, current, power_factor, active_power, reactive_power 중 하나"),
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
+    phase: str | None = Query(None, description="3상 장비의 voltage/current 조회 시 필수: 'r', 's', 't' 중 하나"),
     db: Session = Depends(get_db),
 ):
     device = db.query(Device).filter(Device.id == device_id).first()
@@ -66,12 +67,22 @@ def get_monthly_measurements(
     
     if device.device_type == "single_phase":
         model = SinglePhaseMeasurement
+        column_name = metric
     elif device.device_type == "three_phase":
         model = ThreePhaseMeasurement
+        if metric in ("voltage", "current"):
+            if phase not in ("r", "s", "t"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="3상 장비에서 voltage/current를 조회하려면 phase(r/s/t)를 지정해야 합니다",
+                )
+            column_name = f"{metric}_{phase}"
+        else:
+            column_name = metric
     else:
         raise HTTPException(status_code=500, detail="알 수 없는 device_type입니다")
     
-    metric_column = getattr(model, metric)
+    metric_column = getattr(model, column_name)
     
     start = datetime(year, month, 1)
     end = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month +1, 1)

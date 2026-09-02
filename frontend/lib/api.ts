@@ -6,6 +6,7 @@ import type {
     MonthlyPoint,
     PeakPoint,
     Metric,
+    Phase,
 } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -38,9 +39,11 @@ export function getMonthlyMeasurements(
     deviceId: string,
     metric: Metric,
     year: number,
-    month: number
+    month: number,
+    phase?: Phase
 ): Promise<MonthlyPoint[]> {
-    return fetchJson(`/measurements/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}`);
+    const phaseParam = phase ? `&phase=${phase}` : "";
+    return fetchJson(`/measurements/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}${phaseParam}`);
 }
 
 export function getPeak15min(deviceId: string, date: string): Promise<PeakPoint[]> {
