@@ -1,6 +1,6 @@
 export type DeviceType = "single_phase" | "three_phase";
 export type Protocol = "TCP" | "RTU";
-export type Metric = "voltage" | "current" | "power_factor" | "active_power" | "reactive_power";
+export type Metric = "voltage" | "current" | "power_factor" | "active_power" | "reactive_power" | "energy";
 export type ErrorType = "connection_failed" | "read_failed" | "unknown_device_type";
 export type Phase = "r" | "s" | "t";
 
@@ -61,10 +61,10 @@ export interface MonthlyPoint {
 }
 
 export interface MonthlyPhasePoint {
-     date: string;
-     r: number | null;
-     s: number | null;
-     t: number | null;
+    date: string;
+    r: number | null;
+    s: number | null;
+    t: number | null;
 }
 
 // GET /measurements/peak-15min/{device_id} 응답 항목

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError } from "@/lib/types";
+import type { EnergyResponse } from "@/lib/api";
 import {
     getDevices,
     getRealtimeMeasurements,
@@ -9,6 +10,7 @@ import {
     getPeak15min,
     getDeviceErrors,
     resolveDeviceError,
+    getEnergy,
 } from "@/lib/api";
 import DashboardPresenter from "./DashboardPresenter";
 
@@ -24,6 +26,7 @@ export default function DashboardContainer() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [energyData, setEnergyData] = useState<EnergyResponse | null>(null);
 
     const selectedDevice = devices.find((d) => d.id === selectedDeviceId) ?? null;
 
@@ -50,6 +53,26 @@ export default function DashboardContainer() {
 
         setLoading(true);
         setError(null);
+
+        if (selectedMetric === "energy") {
+            Promise.all([
+                getEnergy(selectedDeviceId, year, month),
+                getPeak15min(selectedDeviceId, today),
+                getDeviceErrors(selectedDeviceId, true),
+            ])
+                .then(([energy, peak, deviceErrors]) => {
+                    setEnergyData(energy);
+                    setMonthlyData([]);
+                    setRealtimeData([]);
+                    setPeakData(peak);
+                    setErrors(deviceErrors);
+                })
+                .catch((e) => setError(e.message))
+                .finally(() => setLoading(false));
+            return;
+        }
+
+        setEnergyData(null);
 
         Promise.all([
             getRealtimeMeasurements(selectedDeviceId, selectedMetric, 30),
@@ -84,6 +107,7 @@ export default function DashboardContainer() {
             onSelectMetric={setSelectedMetric}
             realtimeData={realtimeData}
             monthlyData={monthlyData}
+            energyData={energyData}
             peakData={peakData}
             errors={errors}
             onResolveError={handleResolveError}

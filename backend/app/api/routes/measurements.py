@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime, timedelta
+from collections import defaultdict
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, literal_column
+
 
 from db.session import get_db
 from model.device import Device
@@ -177,3 +179,52 @@ def get_peak_15min(
         {"time": r.bucket.strftime("%H:%M"), "value": round(r.peak_value, 2) if r.peak_value is not None else None}
         for r in results
     ]
+    
+@router.get("/energy/{device_id}")
+def get_energy(
+    device_id:uuid.UUID,
+    year: int = Query(..., ge=2000, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    db: Session = Depends(get_db),
+):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if device is None:
+        raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
+    if device.device_type == "single_phase":
+        model = SinglePhaseMeasurement
+    elif device.device_type == "three_phase":
+        model = ThreePhaseMeasurement
+    else:
+        raise HTTPException(status_code=500, detail="알 수 없는 device_type입니다")
+    
+    start = datetime(year, month, 1)
+    end = datetime(year + 1,1,1) if month == 12 else datetime(year, month + 1, 1)
+    
+    records = (
+        db.query(model.timestamp, model.active_power)
+        .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
+        .order_by(model.timestamp.asc())
+        .all()
+    )
+    
+    daily_kwh: dict = defaultdict(float)
+    MAX_GAP_HOURS = 1.0
+    
+    for i in range(len(records) - 1):
+        t1, p1 = records[i]
+        t2, p2 = records[i + 1]
+        if p1 is None or p2 is None:
+            continue
+        dt_hours = (t2 - t1).total_seconds() /3600
+        if dt_hours <= 0 or dt_hours > MAX_GAP_HOURS:
+            continue
+        avg_power = (p1 + p2) / 2
+        daily_kwh[t1.date()] += avg_power * dt_hours
+        
+    daily = [
+        {"date": day, "kwh": round(kwh, 3)}
+        for day, kwh in sorted(daily_kwh.items())
+    ]
+    total_kwh = round(sum(daily_kwh.values()), 3)
+    
+    return {"daily": daily, "total_kwh": total_kwh}

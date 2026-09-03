@@ -63,4 +63,18 @@ export async function resolveDeviceError(errorId: string): Promise<void> {
     if (!res.ok) {
         throw new Error(`에러 해결 처리 실패 (status ${res.status})`);
     }
-} 
+}
+
+export interface DailyEnergyPoint {
+    date: string;
+    kwh: number;
+}
+
+export interface EnergyResponse {
+    daily: DailyEnergyPoint[];
+    total_kwh: number;
+}
+
+export function getEnergy(deviceId: string, year: number, month: number): Promise<EnergyResponse> {
+    return fetchJson(`/measurements/energy/${deviceId}?year=${year}&month=${month}`);
+}

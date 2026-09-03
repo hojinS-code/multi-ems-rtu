@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, phase } from "@/lib/types";
+import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, Phase } from "@/lib/types";
 
 interface RealtimeChartProps {
     device: Device;
@@ -33,7 +33,7 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
     if (device.device_type === "single_phase") {
         const chartData = (data as SinglePhaseMeasurement[]).map((m) => ({
             time: formatTime(m.timestamp),
-            value: m[metric],
+            value: m[metric as keyof SinglePhaseMeasurement],
         }));
 
         return (

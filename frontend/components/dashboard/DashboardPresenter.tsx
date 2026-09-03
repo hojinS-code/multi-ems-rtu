@@ -1,10 +1,12 @@
 import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError } from "@/lib/types";
+import type { EnergyResponse } from "@/lib/api";
 import DeviceSelector from "./DeviceSelector";
 import MetricDropdown from "./MetricDropdown";
 import DeviceStatusBadge from "./DeviceStatusBadge";
 import RealtimeChart from "./RealtimeChart";
 import MonthlyChart from "./MonthlyChart";
 import Peak15minChart from "./Peak15minChart";
+import EnergyChart from "./EnergyChart";
 import ErrorLogPanel from "./ErrorLogPanel";
 
 interface DashboardPresenterProps {
@@ -15,6 +17,7 @@ interface DashboardPresenterProps {
     onSelectMetric: (metric: Metric) => void;
     realtimeData: (SinglePhaseMeasurement | ThreePhaseMeasurement)[];
     monthlyData: (MonthlyPoint | MonthlyPhasePoint)[];
+    energyData: EnergyResponse | null;
     peakData: PeakPoint[];
     errors: DeviceError[];
     onResolveError: (errorId: string) => Promise<void>;
@@ -30,6 +33,7 @@ export default function DashboardPresenter({
     onSelectMetric,
     realtimeData,
     monthlyData,
+    energyData,
     peakData,
     errors,
     onResolveError,
@@ -53,16 +57,24 @@ export default function DashboardPresenter({
 
             {selectedDevice && !loading && (
                 <>
-                    <section>
-                        <h2 className="text-lg font-semibold mb-2">실시간 그래프</h2>
-                        <RealtimeChart device={selectedDevice} metric={selectedMetric} data={realtimeData} />
-                    </section>
+                    {selectedMetric === "energy" ? (
+                        <section>
+                            <h2 className="text-lg font-semibold mb-2">전력량 (kWh)</h2>
+                            {energyData && <EnergyChart data={energyData} />}
+                        </section>
+                    ) : (
+                        <>
+                            <section>
+                                <h2 className="text-lg font-semibold mb-2">실시간 그래프</h2>
+                                <RealtimeChart device={selectedDevice} metric={selectedMetric} data={realtimeData} />
+                            </section>
 
-                    <section>
-                        <h2 className="text-lg font-semibold mb-2">월별 그래프</h2>
-                        <MonthlyChart device={selectedDevice} metric={selectedMetric} data={monthlyData} />
-                    </section>
-
+                            <section>
+                                <h2 className="text-lg font-semibold mb-2">월별 그래프</h2>
+                                <MonthlyChart device={selectedDevice} metric={selectedMetric} data={monthlyData} />
+                            </section>
+                        </>
+                    )}
                     <section>
                         <h2 className="text-lg font-semibold mb-2">15분 피크전력량 (유효전력 기준)</h2>
                         <Peak15minChart data={peakData} />
