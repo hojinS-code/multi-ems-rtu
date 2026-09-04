@@ -4,9 +4,25 @@ from sqlalchemy.orm import Session
 
 from db.session import get_db
 from model.device import Device
+from model.device_error import DeviceError
 from schema.device import DeviceCreate, DeviceResponse
 
 router = APIRouter(prefix="/devices", tags=["devices"])
+
+def compute_status(device: Device, db: Session) -> str:
+    if not device.is_active:
+        return "정지"
+    
+    has_unresolved_error = (
+        db.query(DeviceError)
+        .filter(DeviceError.device_id == device.id, DeviceError.resolved_at.is_(None))
+        .first()
+        is not None
+    )
+    if has_unresolved_error:
+        return "이상"
+    
+    return "정상"
 
 @router.post("", response_model=DeviceResponse)
 def create_device(device: DeviceCreate, db: Session = Depends(get_db)):
@@ -36,4 +52,5 @@ def get_device_status(device_id: uuid.UUID, db: Session = Depends(get_db)):
     return {
         "device_id": device.id,
         "is_active": device.is_active,
+        "status": compute_status(device, db),
     }

@@ -17,6 +17,7 @@ class Device(Base):
     port = Column(Integer, nullable=True)                   #TCP용
     
     slave_id = Column(Integer, nullable=False)
+    location = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     
     __table_args__ = (

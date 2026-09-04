@@ -13,6 +13,7 @@ class DeviceBase(BaseModel):
     port: Optional[int] = Field(None, ge=1, le=65535, description="TCP 전용, IP 포트 범위")
     
     slave_id: int = Field(..., ge=1,le=247, description="Modbus 표준상 1-247 범위")
+    location: Optional[str] = Field(None, max_length=200, description="장비 설치 위치")
     
     
 class DeviceCreate(DeviceBase):
