@@ -14,6 +14,7 @@ from schema.measurement import SinglePhaseMeasurementResponse, ThreePhaseMeasure
 router = APIRouter(prefix="/measurements", tags=["measurements"])
 
 VALID_METRICS = {"voltage", "current", "power_factor", "active_power", "reactive_power" }
+VALID_GRANULARITIES = {'day', "hour", "minute" }
 
 #실시간 측정값 조회 API
 @router.get("/realtime/{device_id}")
@@ -57,6 +58,7 @@ def get_monthly_measurements(
     metric: str = Query(..., description="voltage, current, power_factor, active_power, reactive_power 중 하나"),
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
+    granularity: str = Query("day", description="'day', 'hour', 'minute' 중 하나"),
     db: Session = Depends(get_db),
 ):
     device = db.query(Device).filter(Device.id == device_id).first()
@@ -65,31 +67,36 @@ def get_monthly_measurements(
 
     if metric not in VALID_METRICS:
         raise HTTPException(status_code=400, detail=f"지원하지 않는 metric입니다: {metric}")
+    
+    if granularity not in VALID_GRANULARITIES:
+        raise HTTPException(status_code=400, detail=f"지원하지 않는 granularity입니다: {granularity}")
 
     start = datetime(year, month, 1)
     end = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month + 1, 1)
+    
+    granularity_literal = literal_column(f"'{granularity}'")
 
     if device.device_type == "single_phase":
         model = SinglePhaseMeasurement
         metric_column = getattr(model, metric)
-        day = func.date_trunc(literal_column("'day'"), model.timestamp).label("day")
+        bucket = func.date_trunc(granularity_literal, model.timestamp).label("bucket")
 
         results = (
-            db.query(day, func.avg(metric_column).label("avg_value"))
+            db.query(bucket, func.avg(metric_column).label("avg_value"))
             .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
-            .group_by(day)
-            .order_by(day.asc())
+            .group_by(bucket)
+            .order_by(bucket.asc())
             .all()
         )
 
         return [
-            {"date": r.day.date(), "value": round(r.avg_value, 2) if r.avg_value is not None else None}
+            {"date": r.bucket.isoformat(), "value": round(r.avg_value, 2) if r.avg_value is not None else None}
             for r in results
         ]
 
     elif device.device_type == "three_phase":
         model = ThreePhaseMeasurement
-        day = func.date_trunc(literal_column("'day'"), model.timestamp).label("day")
+        bucket = func.date_trunc(granularity_literal, model.timestamp).label("bucket")
 
         if metric in ("voltage", "current"):
             col_r = getattr(model, f"{metric}_r")
@@ -98,20 +105,20 @@ def get_monthly_measurements(
 
             results = (
                 db.query(
-                    day,
+                    bucket,
                     func.avg(col_r).label("r"),
                     func.avg(col_s).label("s"),
                     func.avg(col_t).label("t"),
                 )
                 .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
-                .group_by(day)
-                .order_by(day.asc())
+                .group_by(bucket)
+                .order_by(bucket.asc())
                 .all()
             )
 
             return [
                 {
-                    "date": r.day.date(),
+                    "date": r.bucket.isoformat(),
                     "r": round(r.r, 2) if r.r is not None else None,
                     "s": round(r.s, 2) if r.s is not None else None,
                     "t": round(r.t, 2) if r.t is not None else None,
@@ -121,14 +128,14 @@ def get_monthly_measurements(
         else:
             metric_column = getattr(model, metric)
             results = (
-                db.query(day, func.avg(metric_column).label("avg_value"))
+                db.query(bucket, func.avg(metric_column).label("avg_value"))
                 .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
-                .group_by(day)
-                .order_by(day.asc())
+                .group_by(bucket)
+                .order_by(bucket.asc())
                 .all()
             )
             return [
-                {"date": r.day.date(), "value": round(r.avg_value, 2) if r.avg_value is not None else None}
+                {"date": r.bucket.isoformat(), "value": round(r.avg_value, 2) if r.avg_value is not None else None}
                 for r in results
             ]
     else:
