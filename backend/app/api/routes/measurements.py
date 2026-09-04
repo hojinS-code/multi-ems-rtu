@@ -59,6 +59,7 @@ def get_monthly_measurements(
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
     granularity: str = Query("day", description="'day', 'hour', 'minute' 중 하나"),
+    date: str | None = Query(None,description="YYYY-MM-DD, granularity가 hour/minute일 때 필수"),
     db: Session = Depends(get_db),
 ):
     device = db.query(Device).filter(Device.id == device_id).first()
@@ -70,9 +71,18 @@ def get_monthly_measurements(
     
     if granularity not in VALID_GRANULARITIES:
         raise HTTPException(status_code=400, detail=f"지원하지 않는 granularity입니다: {granularity}")
-
-    start = datetime(year, month, 1)
-    end = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month + 1, 1)
+    
+    if granularity in ("hour", "minute"):
+        if not date:
+            raise HTTPException(status_code=400, detail="granularity가 hour/minute일 때는 date가 필요합니다 ")
+        try:
+            start =datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="date는 YYYY-MM-DD 형식이어야 합니다")
+        end = start + timedelta(days=1)
+    else:
+        start = datetime(year, month, 1)
+        end = datetime(year + 1, 1, 1) if month == 12 else datetime(year, month + 1, 1)
     
     granularity_literal = literal_column(f"'{granularity}'")
 

@@ -19,6 +19,12 @@ export default function DashboardContainer() {
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [selectedMetric, setSelectedMetric] = useState<Metric>("voltage");
 
+    const now = new Date();
+    const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1);
+    const [selectedDate, setSelectedDate] = useState<string>(now.toISOString().slice(0, 10));
+    const [granularity, setGranularity] = useState<"day" | "hour" | "minute">("day");
+
     const [realtimeData, setRealtimeData] = useState<(SinglePhaseMeasurement | ThreePhaseMeasurement)[]>([]);
     const [monthlyData, setMonthlyData] = useState<(MonthlyPoint | MonthlyPhasePoint)[]>([]);
     const [peakData, setPeakData] = useState<PeakPoint[]>([]);
@@ -46,17 +52,14 @@ export default function DashboardContainer() {
     useEffect(() => {
         if (!selectedDeviceId) return;
 
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-        const today = now.toISOString().slice(0, 10);
+        const today = new Date().toISOString().slice(0, 10);
 
         setLoading(true);
         setError(null);
 
         if (selectedMetric === "energy") {
             Promise.all([
-                getEnergy(selectedDeviceId, year, month),
+                getEnergy(selectedDeviceId, selectedYear, selectedMonth),
                 getPeak15min(selectedDeviceId, today),
                 getDeviceErrors(selectedDeviceId, true),
             ])
@@ -76,7 +79,14 @@ export default function DashboardContainer() {
 
         Promise.all([
             getRealtimeMeasurements(selectedDeviceId, selectedMetric, 30),
-            getMonthlyMeasurements(selectedDeviceId, selectedMetric, year, month),
+            getMonthlyMeasurements(
+                selectedDeviceId,
+                selectedMetric,
+                selectedYear,
+                selectedMonth,
+                granularity,
+                granularity !== "day" ? selectedDate : undefined
+            ),
             getPeak15min(selectedDeviceId, today),
             getDeviceErrors(selectedDeviceId, true),
         ])
@@ -88,7 +98,7 @@ export default function DashboardContainer() {
             })
             .catch((e) => setError(e.message))
             .finally(() => setLoading(false));
-    }, [selectedDeviceId, selectedMetric]);
+    }, [selectedDeviceId, selectedMetric, selectedYear, selectedMonth, granularity, selectedDate]);
 
     const handleResolveError = async (errorId: string) => {
         await resolveDeviceError(errorId);
@@ -103,8 +113,16 @@ export default function DashboardContainer() {
             devices={devices}
             selectedDevice={selectedDevice}
             selectedMetric={selectedMetric}
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            granularity={granularity}
+            selectedDate={selectedDate}
             onSelectDevice={setSelectedDeviceId}
             onSelectMetric={setSelectedMetric}
+            onSelectYear={setSelectedYear}
+            onSelectMonth={setSelectedMonth}
+            onSelectGranularity={setGranularity}
+            onSelectDate={setSelectedDate}
             realtimeData={realtimeData}
             monthlyData={monthlyData}
             energyData={energyData}

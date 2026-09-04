@@ -13,8 +13,16 @@ interface DashboardPresenterProps {
     devices: Device[];
     selectedDevice: Device | null;
     selectedMetric: Metric;
+    selectedYear: number;
+    selectedMonth: number;
+    granularity: "day" | "hour" | "minute";
+    selectedDate: string;
     onSelectDevice: (deviceId: string) => void;
     onSelectMetric: (metric: Metric) => void;
+    onSelectYear: (year: number) => void;
+    onSelectMonth: (month: number) => void;
+    onSelectGranularity: (granularity: "day" | "hour" | "minute") => void;
+    onSelectDate: (date: string) => void;
     realtimeData: (SinglePhaseMeasurement | ThreePhaseMeasurement)[];
     monthlyData: (MonthlyPoint | MonthlyPhasePoint)[];
     energyData: EnergyResponse | null;
@@ -29,8 +37,16 @@ export default function DashboardPresenter({
     devices,
     selectedDevice,
     selectedMetric,
+    selectedYear,
+    selectedMonth,
+    granularity,
+    selectedDate,
     onSelectDevice,
     onSelectMetric,
+    onSelectYear,
+    onSelectMonth,
+    onSelectGranularity,
+    onSelectDate,
     realtimeData,
     monthlyData,
     energyData,
@@ -48,6 +64,47 @@ export default function DashboardPresenter({
                 <div className="flex items-center gap-3">
                     <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
                     <MetricDropdown selectedMetric={selectedMetric} onSelect={onSelectMetric} />
+
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => onSelectYear(Number(e.target.value))}
+                        className="border rounded px-3 py-2 text-sm text-black bg-white"
+                    >
+                        {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
+                            <option key={y} value={y}>{y}년</option>
+                        ))}
+                    </select>
+
+                    <select
+                        value={selectedMonth}
+                        onChange={(e) => onSelectMonth(Number(e.target.value))}
+                        className="border rounded px-3 py-2 text-sm text-black bg-white"
+                    >
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                            <option key={m} value={m}>{m}월</option>
+                        ))}
+                    </select>
+
+                    {selectedMetric !== "energy" && (
+                        <select
+                            value={granularity}
+                            onChange={(e) => onSelectGranularity(e.target.value as "day" | "hour" | "minute")}
+                            className="border rounded px-3 py-2 text-sm text-black bg-white"
+                        >
+                            <option value="day">일 단위</option>
+                            <option value="hour">시간 단위</option>
+                            <option value="minute">분 단위</option>
+                        </select>
+                    )}
+
+                    {selectedMetric !== "energy" && granularity !== "day" && (
+                        <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => onSelectDate(e.target.value)}
+                            className="border rounded px-3 py-2 text-sm text-black bg-white"
+                        />
+                    )}
 
                     {selectedDevice && <DeviceStatusBadge device={selectedDevice} unresolvedErrors={errors} />}
                 </div>

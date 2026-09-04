@@ -40,9 +40,12 @@ export function getMonthlyMeasurements(
     deviceId: string,
     metric: Metric,
     year: number,
-    month: number
+    month: number,
+    granularity: "day" | "hour" | "minute" = "day",
+    date?: string
 ): Promise<(MonthlyPoint | MonthlyPhasePoint)[]> {
-    return fetchJson(`/measurements/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}`);
+    const dateParam = date ? `&date=${date}` : "";
+    return fetchJson(`/measurements/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}&granularity=${granularity}${dateParam}`);
 }
 
 export function getPeak15min(deviceId: string, date: string): Promise<PeakPoint[]> {
