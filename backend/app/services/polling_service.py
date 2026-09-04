@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from domain.ports import ModbusReader
 from adapters.modbus_rtu import ModbusRtuReader
+from adapters.modbus_tcp import ModbusTcpReader
 from model.device import Device
 from model.measurement import SinglePhaseMeasurement, ThreePhaseMeasurement
 from model.device_error import DeviceError
@@ -19,6 +20,12 @@ def create_reader(device: Device) -> ModbusReader:
             port=device.serial_port,
             baudrate=device.baudrate,
             slave_id=device.slave_id,
+        )
+    elif device.protocol == "TCP":
+        return ModbusTcpReader(
+            host=device.host,
+            port=device.port,
+            slave_id=device.slave_id
         )
     raise ValueError(f"지원하지 않는 protocol: {device.protocol}")
 
