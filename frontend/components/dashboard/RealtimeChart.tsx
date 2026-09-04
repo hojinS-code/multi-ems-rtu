@@ -15,6 +15,10 @@ function formatTime(timestamp: string): string {
     return new Date(timestamp).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
+const METRIC_ALIASES: Partial<Record<Metric, keyof SinglePhaseMeasurement>> = {
+    power: "active_power"
+};
+
 export default function RealtimeChart({ device, metric, data }: RealtimeChartProps) {
     const [visiblePhases, setVisiblePhases] = useState<Set<Phase>>(new Set(["r", "s", "t"]));
 
@@ -33,7 +37,7 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
     if (device.device_type === "single_phase") {
         const chartData = (data as SinglePhaseMeasurement[]).map((m) => ({
             time: formatTime(m.timestamp),
-            value: m[metric as keyof SinglePhaseMeasurement],
+            value: m[METRIC_ALIASES[metric] ?? (metric as keyof SinglePhaseMeasurement)],
         }));
 
         return (

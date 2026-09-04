@@ -13,8 +13,9 @@ from schema.measurement import SinglePhaseMeasurementResponse, ThreePhaseMeasure
 
 router = APIRouter(prefix="/measurements", tags=["measurements"])
 
-VALID_METRICS = {"voltage", "current", "power_factor", "active_power", "reactive_power" }
+VALID_METRICS = {"voltage", "current", "power_factor", "active_power", "reactive_power", "power" }
 VALID_GRANULARITIES = {'day', "hour", "minute" }
+METRIC_ALIASES = {"power": "active_power"}
 
 #실시간 측정값 조회 API
 @router.get("/realtime/{device_id}")
@@ -88,7 +89,7 @@ def get_monthly_measurements(
 
     if device.device_type == "single_phase":
         model = SinglePhaseMeasurement
-        metric_column = getattr(model, metric)
+        metric_column = getattr(model, METRIC_ALIASES.get(metric, metric))
         bucket = func.date_trunc(granularity_literal, model.timestamp).label("bucket")
 
         results = (
@@ -136,7 +137,7 @@ def get_monthly_measurements(
                 for r in results
             ]
         else:
-            metric_column = getattr(model, metric)
+            metric_column = getattr(model, METRIC_ALIASES.get(metric, metric))
             results = (
                 db.query(bucket, func.avg(metric_column).label("avg_value"))
                 .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)

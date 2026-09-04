@@ -12,6 +12,7 @@ const METRIC_LABELS: Record<Metric, string> = {
     active_power: "유효전력",
     reactive_power: "무효전력",
     energy: "전력량",
+    power: "전력",
 };
 
 export default function MetricDropdown({ selectedMetric, onSelect }: MetricDropdownProps) {
