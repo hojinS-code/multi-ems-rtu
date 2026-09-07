@@ -20,6 +20,9 @@ const METRIC_ALIASES: Partial<Record<Metric, keyof SinglePhaseMeasurement>> = {
 };
 
 export default function RealtimeChart({ device, metric, data }: RealtimeChartProps) {
+
+    const isPhaseMetric = metric === "voltage" || metric === "current";
+
     const [visiblePhases, setVisiblePhases] = useState<Set<Phase>>(new Set(["r", "s", "t"]));
 
     const togglePhase = (phase: Phase) => {
@@ -34,7 +37,7 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
         });
     };
 
-    if (device.device_type === "single_phase") {
+    if (device.device_type === "single_phase" || !isPhaseMetric) {
         const chartData = (data as SinglePhaseMeasurement[]).map((m) => ({
             time: formatTime(m.timestamp),
             value: m[METRIC_ALIASES[metric] ?? (metric as keyof SinglePhaseMeasurement)],

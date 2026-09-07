@@ -11,6 +11,7 @@ from model.device import Device
 from model.measurement import SinglePhaseMeasurement, ThreePhaseMeasurement
 from model.device_error import DeviceError
 from config import settings
+from services.alarm_service import check_alarms
 
 logger = logging.getLogger(__name__)
 
@@ -110,3 +111,5 @@ def poll_and_save(device: Device, db: Session) -> None:
     db.add(record)
     db.commit()
     logger.info(f"device_id={device.id} 저장 완료")
+    
+    check_alarms(db, device.id, record)

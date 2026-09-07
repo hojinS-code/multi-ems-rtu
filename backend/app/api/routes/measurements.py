@@ -50,7 +50,19 @@ def get_realtime_measurements(
         .all()
     )
     
-    return [response_schema.model_validate(r) for r in records]
+    def _sanitize(record):
+        for field in ("voltage", "current", "voltage_r", "voltage_s","voltage_t", "current_r", "current_s", "current_t"):
+            if hasattr(record, field):
+                value = getattr(record, field)
+                if value is not None:
+                    value = float(value)
+                    if value < 0:
+                        setattr(record, field, None)
+                    else:
+                        setattr(record, field, value)
+        return record
+    
+    return [response_schema.model_validate(_sanitize(r)) for r in records]
 
 #월별 조회 API추가
 @router.get("/monthly/{device_id}")
@@ -89,7 +101,8 @@ def get_monthly_measurements(
 
     if device.device_type == "single_phase":
         model = SinglePhaseMeasurement
-        metric_column = getattr(model, METRIC_ALIASES.get(metric, metric))
+        column_name = METRIC_ALIASES.get(metric, metric)
+        metric_column = getattr(model, column_name)
         bucket = func.date_trunc(granularity_literal, model.timestamp).label("bucket")
 
         results = (
@@ -101,7 +114,7 @@ def get_monthly_measurements(
         )
 
         return [
-            {"date": r.bucket.isoformat(), "value": round(r.avg_value, 2) if r.avg_value is not None else None}
+            {"date": r.bucket.isoformat(), "value": round(float(r.avg_value), 2) if r.avg_value is not None else None}
             for r in results
         ]
 
@@ -117,9 +130,9 @@ def get_monthly_measurements(
             results = (
                 db.query(
                     bucket,
-                    func.avg(col_r).label("r"),
-                    func.avg(col_s).label("s"),
-                    func.avg(col_t).label("t"),
+                    func.avg(col_r).label("val_r"),
+                    func.avg(col_s).label("val_s"),
+                    func.avg(col_t).label("val_t"),
                 )
                 .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
                 .group_by(bucket)
@@ -130,14 +143,15 @@ def get_monthly_measurements(
             return [
                 {
                     "date": r.bucket.isoformat(),
-                    "r": round(r.r, 2) if r.r is not None else None,
-                    "s": round(r.s, 2) if r.s is not None else None,
-                    "t": round(r.t, 2) if r.t is not None else None,
+                    "r": round(float(r.val_r), 2) if r.val_r is not None else None,
+                    "s": round(float(r.val_s), 2) if r.val_s is not None else None,
+                    "t": round(float(r.val_t), 2) if r.val_t is not None else None,
                 }
                 for r in results
             ]
         else:
-            metric_column = getattr(model, METRIC_ALIASES.get(metric, metric))
+            column_name = METRIC_ALIASES.get(metric, metric)
+            metric_column = getattr(model, column_name)
             results = (
                 db.query(bucket, func.avg(metric_column).label("avg_value"))
                 .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
@@ -146,7 +160,7 @@ def get_monthly_measurements(
                 .all()
             )
             return [
-                {"date": r.bucket.isoformat(), "value": round(r.avg_value, 2) if r.avg_value is not None else None}
+                {"date": r.bucket.isoformat(), "value": round(float (r.avg_value), 2) if r.avg_value is not None else None}
                 for r in results
             ]
     else:
@@ -194,7 +208,7 @@ def get_peak_15min(
     )
     
     return [
-        {"time": r.bucket.strftime("%H:%M"), "value": round(r.peak_value, 2) if r.peak_value is not None else None}
+        {"time": r.bucket.strftime("%H:%M"), "value": round(float (r.peak_value), 2) if r.peak_value is not None else None}
         for r in results
     ]
     

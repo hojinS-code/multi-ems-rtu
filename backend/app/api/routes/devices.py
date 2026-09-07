@@ -54,3 +54,12 @@ def get_device_status(device_id: uuid.UUID, db: Session = Depends(get_db)):
         "is_active": device.is_active,
         "status": compute_status(device, db),
     }
+    
+@router.delete("/{device_id}", status_code=204)
+def delete_device(device_id: uuid.UUID, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if device is None:
+        raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
+    
+    db.delete(device)
+    db.commit()
