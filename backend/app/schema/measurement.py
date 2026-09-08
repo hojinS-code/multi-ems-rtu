@@ -45,3 +45,20 @@ class ThreePhaseMeasurementResponse(ThreePhaseMeasurementBase):
     
     class Config:
         from_attributes = True
+        
+class EnvironmentMeasurementBase(BaseModel):
+    device_id: uuid.UUID
+    timestamp: datetime
+    
+    temperature: Optional[float] = None
+    humidity: Optional[float] = Field(None, ge=0, le=100)
+    illuminance: Optional[float] = Field(None,ge=0)
+    
+class EnvironmentMeasurementCreate(EnvironmentMeasurementBase):
+    pass
+
+class EnvironmentMeasurementResponse(EnvironmentMeasurementBase):
+    id: uuid.UUID
+    
+    class Config:
+        from_attributes = True

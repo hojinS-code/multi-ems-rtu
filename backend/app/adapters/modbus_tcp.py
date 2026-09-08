@@ -26,10 +26,21 @@ class ModbusTcpReader(ModbusReader):
             raise ConnectionError("연결되지 않는 상태에서 읽기 시도")
         
         result = self.client.read_holding_registers(
-            address, count, slave=self.slave_id
+            address, count=count, device_id=self.slave_id
         )
         if result.isError():
             raise IOError(F"레지스터 읽기 실패: address={address}, error={result}")
+        return result.registers
+    
+    def read_input_registers(self, address: int, count: int) -> list[int]:
+        if not self._connected:
+            raise ConnectionError("연결되지 않은 상태에서 읽기 시도")
+            
+        result = self.client.read_input_registers(
+            address, count=count, device_id=self.slave_id
+        )
+        if result.isError():
+            raise IOError(f"Input Register 읽기 실패: address={address}, error={result}")
         return result.registers
     
     def disconnect(self) -> None:

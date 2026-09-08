@@ -3,10 +3,13 @@ import type {
     DeviceError,
     SinglePhaseMeasurement,
     ThreePhaseMeasurement,
+    EnvironmentMeasurement,
+    EnvironmentMonthlyPoint,
     MonthlyPoint,
     MonthlyPhasePoint,
     PeakPoint,
     Metric,
+    EnvMetric,
     Phase,
 } from "./types";
 
@@ -46,6 +49,25 @@ export function getMonthlyMeasurements(
 ): Promise<(MonthlyPoint | MonthlyPhasePoint)[]> {
     const dateParam = date ? `&date=${date}` : "";
     return fetchJson(`/measurements/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}&granularity=${granularity}${dateParam}`);
+}
+
+export function getEnvironmentRealtime(
+    deviceId: string,
+    minutes: number = 30
+): Promise<EnvironmentMeasurement[]> {
+    return fetchJson(`/measurements/environment/realtime/${deviceId}?minutes=${minutes}`);
+}
+
+export function getEnvironmentMonthly(
+    deviceId: string,
+    metric: EnvMetric,
+    year: number,
+    month: number,
+    granularity: "day" | "hour" | "minute" = "day",
+    date?: string
+): Promise<EnvironmentMonthlyPoint[]> {
+    const dateParam = date ? `&date=${date}` : "";
+    return fetchJson(`/measurements/environment/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}&granularity=${granularity}${dateParam}`);
 }
 
 export function getPeak15min(deviceId: string, date: string): Promise<PeakPoint[]> {

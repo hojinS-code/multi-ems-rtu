@@ -1,7 +1,8 @@
-export type DeviceType = "single_phase" | "three_phase";
+export type DeviceType = "single_phase" | "three_phase" | "environment";
 export type Protocol = "TCP" | "RTU";
 export type Metric = "voltage" | "current" | "power_factor" | "active_power" | "reactive_power" | "energy" | "power";
 export type ErrorType = "connection_failed" | "read_failed" | "unknown_device_type";
+export type EnvMetric = "temperature" | "humidity" | "illuminance";
 export type Phase = "r" | "s" | "t";
 
 export interface Device {
@@ -52,6 +53,20 @@ export interface ThreePhaseMeasurement {
     power_factor: number | null;
     active_power: number | null;
     reactive_power: number | null;
+}
+
+export interface EnvironmentMeasurement {
+    id: string;
+    device_id: string;
+    timestamp: string;
+    temperature: number | null;
+    humidity: number | null;
+    illuminance: number | null;
+}
+
+export interface EnvironmentMonthlyPoint {
+    date: string;
+    value: number | null;
 }
 
 // GET /measurements/monthly/{device_id} 응답 항목

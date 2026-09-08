@@ -1,8 +1,9 @@
-import type { Metric } from "@/lib/types";
+import type { Metric, EnvMetric, DeviceType } from "@/lib/types";
 
 interface MetricDropdownProps {
-    selectedMetric: Metric;
-    onSelect: (metric: Metric) => void;
+    deviceType: DeviceType;
+    selectedMetric: string;
+    onSelect: (metric: string) => void;
 }
 
 const METRIC_LABELS: Record<Metric, string> = {
@@ -15,16 +16,24 @@ const METRIC_LABELS: Record<Metric, string> = {
     power: "전력",
 };
 
-export default function MetricDropdown({ selectedMetric, onSelect }: MetricDropdownProps) {
+const ENV_METRIC_LABELS: Record<EnvMetric, string> = {
+    temperature: "온도",
+    humidity: "습도",
+    illuminance: "조도",
+}
+
+export default function MetricDropdown({ deviceType, selectedMetric, onSelect }: MetricDropdownProps) {
+    const labels = deviceType === "environment" ? ENV_METRIC_LABELS : METRIC_LABELS;
+
     return (
         <select
             value={selectedMetric}
-            onChange={(e) => onSelect(e.target.value as Metric)}
+            onChange={(e) => onSelect(e.target.value)}
             className="border rounded px-3 py-2 text-sm"
         >
-            {(Object.keys(METRIC_LABELS) as Metric[]).map((metric) => (
+            {Object.keys(labels).map((metric) => (
                 <option key={metric} value={metric}>
-                    {METRIC_LABELS[metric]}
+                    {(labels as Record<string, string>)[metric]}
                 </option>
             ))}
         </select>

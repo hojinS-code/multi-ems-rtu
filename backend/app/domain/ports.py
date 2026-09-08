@@ -10,6 +10,10 @@ class ModbusReader(ABC):
         ...
         
     @abstractmethod
+    def read_input_registers(self, address: int, count: int) -> list[int]:
+        ...
+        
+    @abstractmethod
     def disconnect(self) -> None:
         ...
         
@@ -22,5 +26,5 @@ class ModbusReader(ABC):
         self.connect()
         return self
     
-    def __exit__(self, exc_type, exc_value, traveback) -> None:
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
         self.disconnect()
