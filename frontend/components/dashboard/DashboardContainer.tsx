@@ -17,7 +17,7 @@ import DashboardPresenter from "./DashboardPresenter";
 export default function DashboardContainer() {
     const [devices, setDevices] = useState<Device[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
-    const [selectedMetric, setSelectedMetric] = useState<Metric>("voltage");
+    const [selectedMetric, setSelectedMetric] = useState<string>("voltage");
 
     const now = new Date();
     const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
@@ -78,10 +78,10 @@ export default function DashboardContainer() {
         setEnergyData(null);
 
         Promise.all([
-            getRealtimeMeasurements(selectedDeviceId, selectedMetric, 30),
+            getRealtimeMeasurements(selectedDeviceId, selectedMetric as Metric, 360),
             getMonthlyMeasurements(
                 selectedDeviceId,
-                selectedMetric,
+                selectedMetric as Metric,
                 selectedYear,
                 selectedMonth,
                 granularity,

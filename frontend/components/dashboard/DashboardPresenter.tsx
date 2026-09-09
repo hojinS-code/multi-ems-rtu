@@ -12,13 +12,13 @@ import ErrorLogPanel from "./ErrorLogPanel";
 interface DashboardPresenterProps {
     devices: Device[];
     selectedDevice: Device | null;
-    selectedMetric: Metric;
+    selectedMetric: string;
     selectedYear: number;
     selectedMonth: number;
     granularity: "day" | "hour" | "minute";
     selectedDate: string;
     onSelectDevice: (deviceId: string) => void;
-    onSelectMetric: (metric: Metric) => void;
+    onSelectMetric: (metric: string) => void;
     onSelectYear: (year: number) => void;
     onSelectMonth: (month: number) => void;
     onSelectGranularity: (granularity: "day" | "hour" | "minute") => void;
@@ -63,7 +63,11 @@ export default function DashboardPresenter({
 
                 <div className="flex items-center gap-3">
                     <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
-                    <MetricDropdown selectedMetric={selectedMetric} onSelect={onSelectMetric} />
+                    <MetricDropdown
+                        deviceType={selectedDevice?.device_type ?? "single_phase"}
+                        selectedMetric={selectedMetric}
+                        onSelect={onSelectMetric}
+                    />
 
                     <select
                         value={selectedYear}
@@ -123,12 +127,12 @@ export default function DashboardPresenter({
                         <>
                             <section>
                                 <h2 className="text-lg font-semibold mb-2">실시간 그래프</h2>
-                                <RealtimeChart device={selectedDevice} metric={selectedMetric} data={realtimeData} />
+                                <RealtimeChart device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
                             </section>
 
                             <section>
                                 <h2 className="text-lg font-semibold mb-2">월별 그래프</h2>
-                                <MonthlyChart device={selectedDevice} metric={selectedMetric} data={monthlyData} />
+                                <MonthlyChart device={selectedDevice} metric={selectedMetric as Metric} data={monthlyData} />
                             </section>
                         </>
                     )}

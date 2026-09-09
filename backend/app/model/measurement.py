@@ -16,6 +16,7 @@ class SinglePhaseMeasurement(Base):
     power_factor = Column(Float)
     active_power = Column(Float)
     reactive_power = Column(Float)
+    total_energy = Column(Float)
     
     __table_args__ = (
         Index("ix_single_phase_device_time", "device_id", "timestamp"),

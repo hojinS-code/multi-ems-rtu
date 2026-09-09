@@ -12,6 +12,7 @@ class SinglePhaseMeasurementBase(BaseModel):
     power_factor: Optional[float] = Field(None, ge=-1, le=1)
     active_power: Optional[float] = None
     reactive_power: Optional[float] = None
+    total_energy: Optional[float] = Field(None, ge=0)
     
 class SinglePhaseMeasurementCreate(SinglePhaseMeasurementBase):
     pass

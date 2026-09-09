@@ -76,7 +76,7 @@ def poll_and_save(device: Device, db: Session) -> None:
     if device.device_type == "three_phase":
         raw = None
     elif device.device_type == "single_phase":
-        raw = poll_with_retry(reader, address=12, count=5)
+        raw = None
     elif device.device_type == "environment":
         raw = poll_with_retry(reader, address=0, count=10)
     else:
@@ -85,7 +85,7 @@ def poll_and_save(device: Device, db: Session) -> None:
         _record_error(db, device.id, "unknown_device_type", message)
         return
 
-    if device.device_type != "three_phase":
+    if device.device_type not in ("three_phase", "single_phase"):
         if raw is None:
             message = f"최대 재시도({settings.max_retries}회) 초과"
             logger.error(f"device_id={device.id} {message}")
@@ -96,18 +96,36 @@ def poll_and_save(device: Device, db: Session) -> None:
     
     try:
         if device.device_type == "single_phase":
-            active_power_raw = raw[2]
+            energy_regs = poll_with_retry(reader, address=0, count=2)
+            if energy_regs is None:
+                message = f"최대 재시도({settings. max_retries}회) 초과"
+                logger.error(f"device_id={device.id} {message}")
+                _record_error(db, device.id, "connection_failed", message)
+                return
+            
+            time.sleep(0.1)
+            
+            main_regs = poll_with_retry(reader, address=12, count=5)
+            if main_regs is None:
+                message = f"최대 재시도({settings.max_retries}회) 초과"
+                logger.error(f"device_id={device.id} {message}")
+                _record_error(db, device.id, "connection_failed", message)
+                return
+            total_energy = ((energy_regs[0] << 16) | energy_regs[1]) / 100
+            
+            active_power_raw = main_regs[2]
             if active_power_raw > 32767:
                 active_power_raw -= 65536
 
             record = SinglePhaseMeasurement(
                 device_id=device.id,
                 timestamp=now,
-                voltage=raw[0] / 10,
-                current=raw[1] / 100,
+                voltage=main_regs[0] / 10,
+                current=main_regs[1] / 100,
                 active_power=active_power_raw,
-                reactive_power=raw[3],
-                power_factor=raw[4] / 1000,
+                reactive_power=main_regs[3],
+                power_factor=main_regs[4] / 1000,
+                total_energy=total_energy,
             )
 
         elif device.device_type == "three_phase":
