@@ -41,10 +41,10 @@ def check_alarms(db: Session, device_id, record) -> None:
         _check_current(db, device_id, record.current)
         _check_power(db, device_id, record.active_power)
     elif isinstance(record, ThreePhaseMeasurement):
-        _check_voltage(db, device_id, record.voltage_r)
-        _check_current(db, device_id, record.current_r)
+        _check_voltage(db, device_id, record.voltage_l1)
+        _check_current(db, device_id, record.current_l1)
         _check_power(db, device_id, record.active_power)
-        _check_phase_imbalance(db, device_id, record.voltage_r, record.voltage_s, record.voltage_t)
+        _check_phase_imbalance(db, device_id, record.voltage_l1, record.voltage_l2, record.voltage_l3)
         
 def _check_voltage(db: Session, device_id, voltage) -> None:
     if voltage is None:

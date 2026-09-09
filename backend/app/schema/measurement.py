@@ -27,12 +27,12 @@ class ThreePhaseMeasurementBase(BaseModel):
     device_id: uuid.UUID
     timestamp: datetime
     
-    voltage_r: Optional[float] = Field(None, ge=0)
-    voltage_s: Optional[float] = Field(None, ge=0)
-    voltage_t: Optional[float] = Field(None, ge=0)
-    current_r: Optional[float] = Field(None, ge=0)
-    current_s: Optional[float] = Field(None, ge=0)
-    current_t: Optional[float] = Field(None, ge=0)
+    voltage_l1: Optional[float] = Field(None, ge=0)
+    voltage_l2: Optional[float] = Field(None, ge=0)
+    voltage_l3: Optional[float] = Field(None, ge=0)
+    current_l1: Optional[float] = Field(None, ge=0)
+    current_l2: Optional[float] = Field(None, ge=0)
+    current_l3: Optional[float] = Field(None, ge=0)
     
     power_factor: Optional[float] = Field(None, ge=-1, le=1)
     active_power: Optional[float] = None

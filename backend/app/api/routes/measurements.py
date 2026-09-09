@@ -128,16 +128,16 @@ def get_monthly_measurements(
         bucket = func.date_trunc(granularity_literal, model.timestamp).label("bucket")
 
         if metric in ("voltage", "current"):
-            col_r = getattr(model, f"{metric}_r")
-            col_s = getattr(model, f"{metric}_s")
-            col_t = getattr(model, f"{metric}_t")
+            col_r = getattr(model, f"{metric}_l1")
+            col_s = getattr(model, f"{metric}_l2")
+            col_t = getattr(model, f"{metric}_l3")
 
             results = (
                 db.query(
                     bucket,
-                    func.avg(col_r).label("val_r"),
-                    func.avg(col_s).label("val_s"),
-                    func.avg(col_t).label("val_t"),
+                    func.avg(col_r).label("val_l1"),
+                    func.avg(col_s).label("val_l2"),
+                    func.avg(col_t).label("val_l3"),
                 )
                 .filter(model.device_id == device_id, model.timestamp >= start, model.timestamp < end)
                 .group_by(bucket)
@@ -148,9 +148,9 @@ def get_monthly_measurements(
             return [
                 {
                     "date": r.bucket.isoformat(),
-                    "r": round(float(r.val_r), 2) if r.val_r is not None else None,
-                    "s": round(float(r.val_s), 2) if r.val_s is not None else None,
-                    "t": round(float(r.val_t), 2) if r.val_t is not None else None,
+                    "l1": round(float(r.val_l1), 2) if r.val_l1 is not None else None,
+                    "l2": round(float(r.val_l2), 2) if r.val_l2 is not None else None,
+                    "l3": round(float(r.val_l3), 2) if r.val_l3 is not None else None,
                 }
                 for r in results
             ]

@@ -70,7 +70,7 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
 
     const isPhaseMetric = metric === "voltage" || metric === "current";
 
-    const [visiblePhases, setVisiblePhases] = useState<Set<Phase>>(new Set(["r", "s", "t"]));
+    const [visiblePhases, setVisiblePhases] = useState<Set<Phase>>(new Set(["l1", "l2", "l3"]));
 
     const togglePhase = (phase: Phase) => {
         setVisiblePhases((prev) => {
@@ -123,9 +123,9 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
 
     const chartData = (data as ThreePhaseMeasurement[]).map((m) => ({
         time: formatTime(m.timestamp),
-        r: m[phaseKey("r")],
-        s: m[phaseKey("s")],
-        t: m[phaseKey("t")],
+        l1: m[phaseKey("l1")],
+        l2: m[phaseKey("l2")],
+        l3: m[phaseKey("l3")],
     }));
 
     const { range, setRange, containerRef } = useWheelZoom(chartData.length);
@@ -139,9 +139,9 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
                     <YAxis />
                     <Tooltip />
                     <Legend onClick={(e) => togglePhase(e.dataKey as Phase)} />
-                    <Line type="monotone" dataKey="r" stroke="#dc2626" dot={false} name="R상" hide={!visiblePhases.has("r")} />
-                    <Line type="monotone" dataKey="s" stroke="#16a34a" dot={false} name="S상" hide={!visiblePhases.has("s")} />
-                    <Line type="monotone" dataKey="t" stroke="#2563eb" dot={false} name="T상" hide={!visiblePhases.has("t")} />
+                    <Line type="monotone" dataKey="l1" stroke="#dc2626" dot={false} name="L1상" hide={!visiblePhases.has("l1")} />
+                    <Line type="monotone" dataKey="l2" stroke="#16a34a" dot={false} name="L2상" hide={!visiblePhases.has("l2")} />
+                    <Line type="monotone" dataKey="l3" stroke="#2563eb" dot={false} name="L3상" hide={!visiblePhases.has("l3")} />
                     <Brush
                         dataKey="time"
                         height={30}

@@ -67,7 +67,7 @@ function isPhaseData(point: MonthlyPoint | MonthlyPhasePoint): point is MonthlyP
 }
 
 export default function MonthlyChart({ device, metric, data }: MonthlyChartProps) {
-  const [visiblePhases, setVisiblePhases] = useState<Set<Phase>>(new Set(["r", "s", "t"]));
+  const [visiblePhases, setVisiblePhases] = useState<Set<Phase>>(new Set(["l1", "l2", "l3"]));
 
   const togglePhase = (phase: Phase) => {
     setVisiblePhases((prev) => {
@@ -86,9 +86,9 @@ export default function MonthlyChart({ device, metric, data }: MonthlyChartProps
   if (isThreePhaseData) {
     const chartData = (data as MonthlyPhasePoint[]).map((point) => ({
       date: formatDate(point.date),
-      r: point.r,
-      s: point.s,
-      t: point.t,
+      l1: point.l1,
+      l2: point.l2,
+      l3: point.l3,
     }));
 
     const { range, setRange, containerRef } = useWheelZoom(chartData.length);
@@ -102,9 +102,9 @@ export default function MonthlyChart({ device, metric, data }: MonthlyChartProps
             <YAxis />
             <Tooltip />
             <Legend onClick={(e) => togglePhase(e.dataKey as Phase)} />
-            <Line type="monotone" dataKey="r" stroke="#dc2626" dot={false} name="R상" hide={!visiblePhases.has("r")} />
-            <Line type="monotone" dataKey="s" stroke="#16a34a" dot={false} name="S상" hide={!visiblePhases.has("s")} />
-            <Line type="monotone" dataKey="t" stroke="#2563eb" dot={false} name="T상" hide={!visiblePhases.has("t")} />
+            <Line type="monotone" dataKey="l1" stroke="#dc2626" dot={false} name="L1상" hide={!visiblePhases.has("l1")} />
+            <Line type="monotone" dataKey="l2" stroke="#16a34a" dot={false} name="L2상" hide={!visiblePhases.has("l2")} />
+            <Line type="monotone" dataKey="l3" stroke="#2563eb" dot={false} name="L3상" hide={!visiblePhases.has("l3")} />
             <Brush
               dataKey="date"
               height={30}

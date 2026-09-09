@@ -29,12 +29,12 @@ class ThreePhaseMeasurement(Base):
     device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id", ondelete="RESTRICT"), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     
-    voltage_r = Column(Float)
-    voltage_s = Column(Float)
-    voltage_t = Column(Float)
-    current_r = Column(Float)
-    current_s = Column(Float)
-    current_t = Column(Float)
+    voltage_l1 = Column(Float)
+    voltage_l2 = Column(Float)
+    voltage_l3 = Column(Float)
+    current_l1 = Column(Float)
+    current_l2 = Column(Float)
+    current_l3 = Column(Float)
     
     power_factor = Column(Float)            #보통 3상 통합 역률 1개로 나옴(장비 스펙에 따라 상별로 나올 수도 있음)
     active_power = Column(Float)            #3상 합산 유효전력

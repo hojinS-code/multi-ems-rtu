@@ -3,7 +3,7 @@ export type Protocol = "TCP" | "RTU";
 export type Metric = "voltage" | "current" | "power_factor" | "active_power" | "reactive_power" | "energy" | "power";
 export type ErrorType = "connection_failed" | "read_failed" | "unknown_device_type";
 export type EnvMetric = "temperature" | "humidity" | "illuminance";
-export type Phase = "r" | "s" | "t";
+export type Phase = "l1" | "l2" | "l3";
 
 export interface Device {
     id: string;
@@ -44,12 +44,12 @@ export interface ThreePhaseMeasurement {
     id: string;
     device_id: string;
     timestamp: string;
-    voltage_r: number | null;
-    voltage_s: number | null;
-    voltage_t: number | null;
-    current_r: number | null;
-    current_s: number | null;
-    current_t: number | null;
+    voltage_l1: number | null;
+    voltage_l2: number | null;
+    voltage_l3: number | null;
+    current_l1: number | null;
+    current_l2: number | null;
+    current_l3: number | null;
     power_factor: number | null;
     active_power: number | null;
     reactive_power: number | null;
@@ -77,9 +77,9 @@ export interface MonthlyPoint {
 
 export interface MonthlyPhasePoint {
     date: string;
-    r: number | null;
-    s: number | null;
-    t: number | null;
+    l1: number | null;
+    l2: number | null;
+    l3: number | null;
 }
 
 // GET /measurements/peak-15min/{device_id} 응답 항목
