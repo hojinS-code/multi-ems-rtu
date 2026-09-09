@@ -15,7 +15,11 @@ from schema.measurement import EnvironmentMeasurementResponse
 
 router = APIRouter(prefix="/measurements", tags=["measurements"])
 
-VALID_METRICS = {"voltage", "current", "power_factor", "active_power", "reactive_power", "power" }
+VALID_METRICS = {
+    "voltage", "current", "power_factor", "active_power", "reactive_power", "power",
+    "voltage_l1", "voltage_l2", "voltage_l3",
+    "current_l1", "current_l2", "current_l3",
+}
 VALID_GRANULARITIES = {'day', "hour", "minute" }
 METRIC_ALIASES = {"power": "active_power"}
 ENV_METRICS = {"temperature", "humidity", "illuminance"}
@@ -275,7 +279,7 @@ def get_environment_realtime(
     device = db.query(Device).filter(Device.id == device_id).first()
     if device is None:
         raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
-    if device.device_type != "enviroment":
+    if device.device_type != "environment":
         raise HTTPException(status_code=400, detail="온습도조도계 장비가 아닙니다")
     
     since = datetime.now(KST).replace(tzinfo=None) - timedelta(minutes=minutes)

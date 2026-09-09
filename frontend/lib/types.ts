@@ -1,6 +1,9 @@
 export type DeviceType = "single_phase" | "three_phase" | "environment";
 export type Protocol = "TCP" | "RTU";
-export type Metric = "voltage" | "current" | "power_factor" | "active_power" | "reactive_power" | "energy" | "power";
+export type Metric =
+    | "voltage" | "current" | "power_factor" | "active_power" | "reactive_power" | "energy" | "power"
+    | "voltage_l1" | "voltage_l2" | "voltage_l3"
+    | "current_l1" | "current_l2" | "current_l3";
 export type ErrorType = "connection_failed" | "read_failed" | "unknown_device_type";
 export type EnvMetric = "temperature" | "humidity" | "illuminance";
 export type Phase = "l1" | "l2" | "l3";

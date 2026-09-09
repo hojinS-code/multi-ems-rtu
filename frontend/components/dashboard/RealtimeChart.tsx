@@ -69,6 +69,10 @@ const METRIC_ALIASES: Partial<Record<Metric, keyof SinglePhaseMeasurement>> = {
 export default function RealtimeChart({ device, metric, data }: RealtimeChartProps) {
 
     const isPhaseMetric = metric === "voltage" || metric === "current";
+    const isIndividualPhaseMetric = [
+        "voltage_l1", "voltage_l2", "voltage_l3",
+        "current_l1", "current_l2", "current_l3",
+    ].includes(metric);
 
     const [visiblePhases, setVisiblePhases] = useState<Set<Phase>>(new Set(["l1", "l2", "l3"]));
 
@@ -84,10 +88,13 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
         });
     };
 
-    if (device.device_type === "single_phase" || !isPhaseMetric) {
-        const chartData = (data as SinglePhaseMeasurement[]).map((m) => ({
+    if (device.device_type === "single_phase" || !isPhaseMetric || isIndividualPhaseMetric) {
+        const isThreePhaseDevice = device.device_type === "three_phase";
+        const chartData = (isThreePhaseDevice ? (data as ThreePhaseMeasurement[]) : (data as SinglePhaseMeasurement[])).map((m: any) => ({
             time: formatTime(m.timestamp),
-            value: m[METRIC_ALIASES[metric] ?? (metric as keyof SinglePhaseMeasurement)],
+            value: isIndividualPhaseMetric
+                ? m[metric as keyof ThreePhaseMeasurement]
+                : m[METRIC_ALIASES[metric] ?? (metric as keyof SinglePhaseMeasurement)],
         }));
 
         const { range, setRange, containerRef } = useWheelZoom(chartData.length);
