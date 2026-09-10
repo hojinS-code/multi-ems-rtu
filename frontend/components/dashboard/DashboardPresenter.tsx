@@ -2,7 +2,9 @@ import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, Mon
 import type { EnergyResponse } from "@/lib/api";
 import DeviceSelector from "./DeviceSelector";
 import MetricDropdown from "./MetricDropdown";
+import MetricTree from "./MetricTree";
 import DeviceStatusBadge from "./DeviceStatusBadge";
+import MetricReadout from "./MetricReadout";
 import RealtimeChart from "./RealtimeChart";
 import MonthlyChart from "./MonthlyChart";
 import Peak15minChart from "./Peak15minChart";
@@ -57,96 +59,152 @@ export default function DashboardPresenter({
     error,
 }: DashboardPresenterProps) {
     return (
-        <div className="max-w-[1600px] mx-auto p-6 space-y-8 bg-white text-black min-h-screen">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold">Multi-EMS-RTU 대시보드</h1>
+        <div className="min-h-screen bg-[var(--background)]">
+            <header className="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-4">
+                <h1 className="text-xl font-bold text-[var(--foreground)]">Multi-EMS-RTU 대시보드</h1>
+            </header>
 
-                <div className="flex items-center gap-3">
-                    <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
-                    <MetricDropdown
-                        deviceType={selectedDevice?.device_type ?? "single_phase"}
-                        selectedMetric={selectedMetric}
-                        onSelect={onSelectMetric}
-                    />
+            <div className="flex">
+                {/* 왼쪽 사이드바 */}
+                <aside className="w-64 shrink-0 border-r border-[var(--border)] bg-[var(--surface)] p-5 space-y-6">
+                    <div>
+                        <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">장비 선택</p>
+                        <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
+                        {selectedDevice && (
+                            <div className="mt-2">
+                                <DeviceStatusBadge device={selectedDevice} unresolvedErrors={errors} />
+                            </div>
+                        )}
+                    </div>
 
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => onSelectYear(Number(e.target.value))}
-                        className="border rounded px-3 py-2 text-sm text-black bg-white"
-                    >
-                        {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
-                            <option key={y} value={y}>{y}년</option>
-                        ))}
-                    </select>
-
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => onSelectMonth(Number(e.target.value))}
-                        className="border rounded px-3 py-2 text-sm text-black bg-white"
-                    >
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                            <option key={m} value={m}>{m}월</option>
-                        ))}
-                    </select>
-
-                    {selectedMetric !== "energy" && (
-                        <select
-                            value={granularity}
-                            onChange={(e) => onSelectGranularity(e.target.value as "day" | "hour" | "minute")}
-                            className="border rounded px-3 py-2 text-sm text-black bg-white"
-                        >
-                            <option value="day">일 단위</option>
-                            <option value="hour">시간 단위</option>
-                            <option value="minute">분 단위</option>
-                        </select>
+                    {selectedDevice && (
+                        <div>
+                            <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">지표 바로가기</p>
+                            <MetricTree
+                                deviceType={selectedDevice.device_type}
+                                selectedMetric={selectedMetric}
+                                onSelect={onSelectMetric}
+                            />
+                        </div>
                     )}
+                </aside>
 
-                    {selectedMetric !== "energy" && granularity !== "day" && (
-                        <input
-                            type="date"
-                            value={selectedDate}
-                            onChange={(e) => onSelectDate(e.target.value)}
-                            className="border rounded px-3 py-2 text-sm text-black bg-white"
-                        />
-                    )}
+                {/* 오른쪽 메인 영역 */}
+                <main className="flex-1 p-6 space-y-6">
+                    {error && <p className="text-[var(--status-critical)] text-sm">에러: {error}</p>}
+                    {loading && <p className="text-[var(--foreground-muted)] text-sm">불러오는 중...</p>}
 
-                    {selectedDevice && <DeviceStatusBadge device={selectedDevice} unresolvedErrors={errors} />}
-                </div>
-            </div>
-            {error && <p className="text-red-600 text-sm">에러: {error}</p>}
-            {loading && <p className="text-gray-500 text-sm">불러오는 중...</p>}
-
-            {selectedDevice && !loading && (
-                <>
-                    {selectedMetric === "energy" ? (
-                        <section>
-                            <h2 className="text-lg font-semibold mb-2">전력량 (kWh)</h2>
-                            {energyData && <EnergyChart data={energyData} />}
-                        </section>
-                    ) : (
+                    {selectedDevice && !loading && (
                         <>
-                            <section>
-                                <h2 className="text-lg font-semibold mb-2">실시간 그래프</h2>
-                                <RealtimeChart device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
+                            {selectedMetric === "energy" ? (
+                                <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">전력량 (kWh)</h2>
+                                        <div className="flex items-center gap-2">
+                                            <MetricDropdown
+                                                deviceType={selectedDevice.device_type}
+                                                selectedMetric={selectedMetric}
+                                                onSelect={onSelectMetric}
+                                            />
+                                            <select
+                                                value={selectedYear}
+                                                onChange={(e) => onSelectYear(Number(e.target.value))}
+                                                className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                                            >
+                                                {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
+                                                    <option key={y} value={y}>{y}년</option>
+                                                ))}
+                                            </select>
+                                            <select
+                                                value={selectedMonth}
+                                                onChange={(e) => onSelectMonth(Number(e.target.value))}
+                                                className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                                            >
+                                                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                                                    <option key={m} value={m}>{m}월</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    {energyData && <EnergyChart data={energyData} />}
+                                </section>
+                            ) : (
+                                <>
+                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                        <MetricReadout device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
+                                    </section>
+
+                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">실시간 그래프</h2>
+                                            <MetricDropdown
+                                                deviceType={selectedDevice.device_type}
+                                                selectedMetric={selectedMetric}
+                                                onSelect={onSelectMetric}
+                                            />
+                                        </div>
+                                        <RealtimeChart device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
+                                    </section>
+
+                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">월별 그래프</h2>
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={selectedYear}
+                                                    onChange={(e) => onSelectYear(Number(e.target.value))}
+                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                                                >
+                                                    {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
+                                                        <option key={y} value={y}>{y}년</option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    value={selectedMonth}
+                                                    onChange={(e) => onSelectMonth(Number(e.target.value))}
+                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                                                >
+                                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                                                        <option key={m} value={m}>{m}월</option>
+                                                    ))}
+                                                </select>
+                                                <select
+                                                    value={granularity}
+                                                    onChange={(e) => onSelectGranularity(e.target.value as "day" | "hour" | "minute")}
+                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                                                >
+                                                    <option value="day">일 단위</option>
+                                                    <option value="hour">시간 단위</option>
+                                                    <option value="minute">분 단위</option>
+                                                </select>
+                                                {granularity !== "day" && (
+                                                    <input
+                                                        type="date"
+                                                        value={selectedDate}
+                                                        onChange={(e) => onSelectDate(e.target.value)}
+                                                        className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                        <MonthlyChart device={selectedDevice} metric={selectedMetric as Metric} data={monthlyData} />
+                                    </section>
+                                </>
+                            )}
+
+                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">15분 피크전력량 (유효전력 기준)</h2>
+                                <Peak15minChart data={peakData} />
                             </section>
 
-                            <section>
-                                <h2 className="text-lg font-semibold mb-2">월별 그래프</h2>
-                                <MonthlyChart device={selectedDevice} metric={selectedMetric as Metric} data={monthlyData} />
+                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">미해결 에러</h2>
+                                <ErrorLogPanel errors={errors} onResolve={onResolveError} />
                             </section>
                         </>
                     )}
-                    <section>
-                        <h2 className="text-lg font-semibold mb-2">15분 피크전력량 (유효전력 기준)</h2>
-                        <Peak15minChart data={peakData} />
-                    </section>
-
-                    <section>
-                        <h2 className="text-lg font-semibold mb-2">미해결 에러</h2>
-                        <ErrorLogPanel errors={errors} onResolve={onResolveError} />
-                    </section>
-                </>
-            )}
+                </main>
+            </div>
         </div>
     );
 }

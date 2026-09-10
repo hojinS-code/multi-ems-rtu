@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError } from "@/lib/types";
 import type { EnergyResponse } from "@/lib/api";
 import {
@@ -13,6 +13,8 @@ import {
     getEnergy,
 } from "@/lib/api";
 import DashboardPresenter from "./DashboardPresenter";
+
+const AUTO_REFRESH_MS = 60000;
 
 export default function DashboardContainer() {
     const [devices, setDevices] = useState<Device[]>([]);
@@ -48,13 +50,12 @@ export default function DashboardContainer() {
             .catch((e) => setError(e.message));
     }, []);
 
-    //선택된 장비/지표가 바뀔 때마다 데이터 재조회
-    useEffect(() => {
+    const fetchData = useCallback((showLoading: boolean) => {
         if (!selectedDeviceId) return;
 
         const today = new Date().toISOString().slice(0, 10);
 
-        setLoading(true);
+        if (showLoading) setLoading(true);
         setError(null);
 
         if (selectedMetric === "energy") {
@@ -99,6 +100,20 @@ export default function DashboardContainer() {
             .catch((e) => setError(e.message))
             .finally(() => setLoading(false));
     }, [selectedDeviceId, selectedMetric, selectedYear, selectedMonth, granularity, selectedDate]);
+
+    // 선택된 장비/지표/기간이 바뀔 때마다 즉시 재조회 (로딩 표시 O)
+    useEffect(() => {
+        fetchData(true);
+    }, [fetchData]);
+
+    // 60초마다 자동으로 백그라운드 재조회 (로딩 표시 X)
+    useEffect(() => {
+        if (!selectedDeviceId) return;
+        const interval = setInterval(() => {
+            fetchData(false);
+        }, AUTO_REFRESH_MS);
+        return () => clearInterval(interval);
+    }, [fetchData, selectedDeviceId]);
 
     const handleResolveError = async (errorId: string) => {
         await resolveDeviceError(errorId);

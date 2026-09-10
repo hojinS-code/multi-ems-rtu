@@ -20,7 +20,13 @@ function useWheelZoom(length: number) {
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        setRange([0, Math.max(length - 1, 0)]);
+        setRange((prev) => {
+            const [start, end] = prev;
+            if (end > length - 1 || start > length - 1) {
+                return [0, Math.max(length - 1, 0)];
+            }
+            return prev;
+        });
     }, [length]);
 
     useEffect(() => {
@@ -29,15 +35,20 @@ function useWheelZoom(length: number) {
 
         const handleWheel = (e: WheelEvent) => {
             e.preventDefault();
+
+            const rect = el.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const ratio = Math.min(Math.max(mouseX / rect.width, 0), 1);
+
             setRange(([start, end]) => {
                 const currentSpan = end - start;
-                const center = (start + end) / 2;
+                const pivot = start + currentSpan * ratio;
                 const factor = e.deltaY < 0 ? 0.8 : 1.25;
                 let newSpan = currentSpan * factor;
                 newSpan = Math.max(4, Math.min(length - 1, newSpan));
 
-                let newStart = Math.round(center - newSpan / 2);
-                let newEnd = Math.round(center + newSpan / 2);
+                let newStart = Math.round(pivot - newSpan * ratio);
+                let newEnd = Math.round(pivot + newSpan * (1 - ratio));
 
                 if (newStart < 0) {
                     newEnd -= newStart;
