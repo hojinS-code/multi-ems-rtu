@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { EnergyResponse } from "@/lib/api";
 
 interface EnergyChartProps {
@@ -22,13 +22,13 @@ export default function EnergyChart({ data }: EnergyChartProps) {
                 이번 달 총 사용량:<span className="text-blue-600">{data.total_kwh.toLocaleString()} kWh</span>
             </p>
             <ResponsiveContainer width="100%" height={450}>
-                <BarChart data={chartData}>
+                <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis />
                     <Tooltip />
-                    <Bar dataKey="kwh" fill="#059669" name="일일 사용량 (kWh)" />
-                </BarChart>
+                    <Line type="monotone" dataKey="kwh" stroke="#059669" dot={false} name="일일 사용량 (kWh)" />
+                </LineChart>
             </ResponsiveContainer>
         </div>
     );
