@@ -8,15 +8,22 @@ interface EnvironmentRealtimeChartProps {
 
 interface EnvironmentMonthlyChartProps {
     data: EnvironmentMonthlyPoint[];
+    granularity: "day" | "hour" | "minute";
 }
 
 function formatTime(timestamp: string): string {
     return new Date(timestamp).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-function formatDate(dateStr: string): string {
+function formatByGranularity(dateStr: string, granularity: "day" | "hour" | "minute"): string {
     const d = new Date(dateStr);
-    return `${d.getMonth() + 1}/${d.getDate()}`;
+    if (granularity === "day") {
+        return `${d.getMonth() + 1}/${d.getDate()}`;
+    }
+    if (granularity === "hour") {
+        return `${d.getHours()}시`;
+    }
+    return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 }
 
 export function EnvironmentRealtimeChart({ metric, data }: EnvironmentRealtimeChartProps) {
@@ -38,9 +45,9 @@ export function EnvironmentRealtimeChart({ metric, data }: EnvironmentRealtimeCh
     );
 }
 
-export function EnvironmentMonthlyChart({ data }: EnvironmentMonthlyChartProps) {
+export function EnvironmentMonthlyChart({ data, granularity }: EnvironmentMonthlyChartProps) {
     const chartData = data.map((point) => ({
-        date: formatDate(point.date),
+        date: formatByGranularity(point.date, granularity),
         value: point.value,
     }));
 

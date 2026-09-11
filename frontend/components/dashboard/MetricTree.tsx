@@ -37,7 +37,7 @@ const THREE_PHASE_TREE: MetricNode[] = [
 
 const ENV_TREE: MetricNode[] = [
     {
-        key: "temperature",
+        key: "__env_group__",
         label: "온습도",
         children: [
             { key: "temperature", label: "온도" },

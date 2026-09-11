@@ -6,6 +6,12 @@ interface DeviceSelectorProps {
     onSelect: (deviceId: string) => void;
 }
 
+const DEVICE_TYPE_LABELS: Record<string, string> = {
+    single_phase: "단상",
+    three_phase: "3상",
+    environment: "온습도조도계",
+};
+
 export default function DeviceSelector({ devices, selectedDeviceId, onSelect }: DeviceSelectorProps) {
     return (
         <select
@@ -15,7 +21,7 @@ export default function DeviceSelector({ devices, selectedDeviceId, onSelect }: 
         >
             {devices.map((device) => (
                 <option key={device.id} value={device.id}>
-                    {device.name} ({device.device_type === "single_phase" ? "단상" : "3상"})
+                    {device.name} ({DEVICE_TYPE_LABELS[device.device_type] ?? device.device_type})
                 </option>
             ))}
         </select>

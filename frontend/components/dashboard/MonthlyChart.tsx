@@ -8,11 +8,17 @@ interface MonthlyChartProps {
   device: Device;
   metric: Metric;
   data: (MonthlyPoint | MonthlyPhasePoint)[];
+  granularity: "day" | "hour" | "minute";
 }
-
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, granularity: "day" | "hour" | "minute"): string {
   const d = new Date(dateStr);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  if (granularity === "day") {
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  }
+  if (granularity === "hour") {
+    return `${d.getHours()}시`;
+  }
+  return d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
 }
 
 function useWheelZoom(length: number) {
@@ -76,8 +82,9 @@ function isPhaseData(point: MonthlyPoint | MonthlyPhasePoint): point is MonthlyP
   return "r" in point;
 }
 
-export default function MonthlyChart({ device, metric, data }: MonthlyChartProps) {
+export default function MonthlyChart({ device, metric, data, granularity }: MonthlyChartProps) {
   const [visiblePhases, setVisiblePhases] = useState<Set<Phase>>(new Set(["l1", "l2", "l3"]));
+
 
   const togglePhase = (phase: Phase) => {
     setVisiblePhases((prev) => {
@@ -95,7 +102,7 @@ export default function MonthlyChart({ device, metric, data }: MonthlyChartProps
 
   if (isThreePhaseData) {
     const chartData = (data as MonthlyPhasePoint[]).map((point) => ({
-      date: formatDate(point.date),
+      date: formatDate(point.date, granularity),
       l1: point.l1,
       l2: point.l2,
       l3: point.l3,
@@ -134,7 +141,7 @@ export default function MonthlyChart({ device, metric, data }: MonthlyChartProps
   }
 
   const chartData = (data as MonthlyPoint[]).map((point) => ({
-    date: formatDate(point.date),
+    date: formatDate(point.date, granularity),
     value: point.value,
   }));
 

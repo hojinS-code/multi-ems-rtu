@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Device, Metric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError } from "@/lib/types";
+import type { Device, Metric, EnvMetric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError, EnvironmentMeasurement, EnvironmentMonthlyPoint } from "@/lib/types";
 import type { EnergyResponse } from "@/lib/api";
 import {
     getDevices,
@@ -11,6 +11,8 @@ import {
     getDeviceErrors,
     resolveDeviceError,
     getEnergy,
+    getEnvironmentRealtime,
+    getEnvironmentMonthly,
 } from "@/lib/api";
 import DashboardPresenter from "./DashboardPresenter";
 
@@ -32,6 +34,9 @@ export default function DashboardContainer() {
     const [peakData, setPeakData] = useState<PeakPoint[]>([]);
     const [errors, setErrors] = useState<DeviceError[]>([]);
 
+    const [envRealtimeData, setEnvRealtimeData] = useState<EnvironmentMeasurement[]>([]);
+    const [envMonthlyData, setEnvMonthlyData] = useState<EnvironmentMonthlyPoint[]>([]);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [energyData, setEnergyData] = useState<EnergyResponse | null>(null);
@@ -50,13 +55,46 @@ export default function DashboardContainer() {
             .catch((e) => setError(e.message));
     }, []);
 
+    // 장비가 바뀔 때 지표 기본값을 장비 타입에 맞게 리셋
+    useEffect(() => {
+        if (!selectedDevice) return;
+        if (selectedDevice.device_type === "environment") {
+            setSelectedMetric("temperature");
+        } else {
+            setSelectedMetric("voltage");
+        }
+    }, [selectedDevice?.id]);
+
     const fetchData = useCallback((showLoading: boolean) => {
-        if (!selectedDeviceId) return;
+        if (!selectedDeviceId || !selectedDevice) return;
 
         const today = new Date().toISOString().slice(0, 10);
 
         if (showLoading) setLoading(true);
         setError(null);
+
+        if (selectedDevice.device_type === "environment") {
+            Promise.all([
+                getEnvironmentRealtime(selectedDeviceId, 360),
+                getEnvironmentMonthly(
+                    selectedDeviceId,
+                    selectedMetric as EnvMetric,
+                    selectedYear,
+                    selectedMonth,
+                    granularity,
+                    granularity !== "day" ? selectedDate : undefined
+                ),
+                getDeviceErrors(selectedDeviceId, true),
+            ])
+                .then(([envRealtime, envMonthly, deviceErrors]) => {
+                    setEnvRealtimeData(envRealtime);
+                    setEnvMonthlyData(envMonthly);
+                    setErrors(deviceErrors);
+                })
+                .catch((e) => setError(e.message))
+                .finally(() => setLoading(false));
+            return;
+        }
 
         if (selectedMetric === "energy") {
             Promise.all([
@@ -99,7 +137,7 @@ export default function DashboardContainer() {
             })
             .catch((e) => setError(e.message))
             .finally(() => setLoading(false));
-    }, [selectedDeviceId, selectedMetric, selectedYear, selectedMonth, granularity, selectedDate]);
+    }, [selectedDeviceId, selectedDevice, selectedMetric, selectedYear, selectedMonth, granularity, selectedDate]);
 
     // 선택된 장비/지표/기간이 바뀔 때마다 즉시 재조회 (로딩 표시 O)
     useEffect(() => {
@@ -140,6 +178,8 @@ export default function DashboardContainer() {
             onSelectDate={setSelectedDate}
             realtimeData={realtimeData}
             monthlyData={monthlyData}
+            envRealtimeData={envRealtimeData}
+            envMonthlyData={envMonthlyData}
             energyData={energyData}
             peakData={peakData}
             errors={errors}
