@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from db.session import Base, engine
 from services.scheduler import start_scheduler, stop_scheduler
-from api.routes import devices, measurements, device_errors
+from api.routes import devices, measurements, device_errors, alarms
 from fastapi.middleware.cors import CORSMiddleware
 
 logging.basicConfig(
@@ -39,6 +39,7 @@ app.add_middleware(
 app.include_router(devices.router)
 app.include_router(measurements.router)
 app.include_router(device_errors.router)
+app.include_router(alarms.router)
 
 @app.get("/health")
 def health_check():
