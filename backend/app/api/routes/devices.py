@@ -1,6 +1,7 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from db.session import get_db
 from model.device import Device
@@ -60,6 +61,12 @@ def delete_device(device_id: uuid.UUID, db: Session = Depends(get_db)):
     device = db.query(Device).filter(Device.id == device_id).first()
     if device is None:
         raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
-    
-    db.delete(device)
-    db.commit()
+    try:
+        db.delete(device)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="측정 이력이 남아있는 장비는 삭제할 수 없습니다. 먼저 비활성화(is_active=false)를 이용해주세요."
+        )

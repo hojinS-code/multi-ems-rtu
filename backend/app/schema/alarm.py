@@ -3,8 +3,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Optional
 
-ALARM_TYPE_PATTERN = "^(over_voltage|under_voltage|onver_current|over_power|phase_imbalance)$"
-SEVERITY_PATTERN = "^(waring|critical)$"
+ALARM_TYPE_PATTERN = "^(over_voltage|under_voltage|over_current|over_power|phase_imbalance)$"
+SEVERITY_PATTERN = "^(warning|critical)$"
 
 class AlarmResponse(BaseModel):
     id: uuid.UUID
