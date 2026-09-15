@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Device, Metric, EnvMetric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError, EnvironmentMeasurement, EnvironmentMonthlyPoint } from "@/lib/types";
+import type { Device, Metric, EnvMetric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError, EnvironmentMeasurement, EnvironmentMonthlyPoint, Alarm } from "@/lib/types";
 import type { EnergyResponse } from "@/lib/api";
 import {
     getDevices,
@@ -13,6 +13,8 @@ import {
     getEnergy,
     getEnvironmentRealtime,
     getEnvironmentMonthly,
+    getAlarms,
+    resolveAlarm,
 } from "@/lib/api";
 import DashboardPresenter from "./DashboardPresenter";
 
@@ -33,6 +35,7 @@ export default function DashboardContainer() {
     const [monthlyData, setMonthlyData] = useState<(MonthlyPoint | MonthlyPhasePoint)[]>([]);
     const [peakData, setPeakData] = useState<PeakPoint[]>([]);
     const [errors, setErrors] = useState<DeviceError[]>([]);
+    const [alarms, setAlarms] = useState<Alarm[]>([]);
 
     const [envRealtimeData, setEnvRealtimeData] = useState<EnvironmentMeasurement[]>([]);
     const [envMonthlyData, setEnvMonthlyData] = useState<EnvironmentMonthlyPoint[]>([]);
@@ -85,11 +88,13 @@ export default function DashboardContainer() {
                     granularity !== "day" ? selectedDate : undefined
                 ),
                 getDeviceErrors(selectedDeviceId, true),
+                getAlarms(selectedDeviceId, true),
             ])
-                .then(([envRealtime, envMonthly, deviceErrors]) => {
+                .then(([envRealtime, envMonthly, deviceErrors, deviceAlarms]) => {
                     setEnvRealtimeData(envRealtime);
                     setEnvMonthlyData(envMonthly);
                     setErrors(deviceErrors);
+                    setAlarms(deviceAlarms);
                 })
                 .catch((e) => setError(e.message))
                 .finally(() => setLoading(false));
@@ -98,16 +103,18 @@ export default function DashboardContainer() {
 
         if (selectedMetric === "energy") {
             Promise.all([
-                getEnergy(selectedDeviceId, selectedYear, selectedMonth),
+                getEnergy(selectedDeviceId, selectedYear, selectedMonth,),
                 getPeak15min(selectedDeviceId, today),
                 getDeviceErrors(selectedDeviceId, true),
+                getAlarms(selectedDeviceId, true),
             ])
-                .then(([energy, peak, deviceErrors]) => {
+                .then(([energy, peak, deviceErrors, deviceAlarms]) => {
                     setEnergyData(energy);
                     setMonthlyData([]);
                     setRealtimeData([]);
                     setPeakData(peak);
                     setErrors(deviceErrors);
+                    setAlarms(deviceAlarms)
                 })
                 .catch((e) => setError(e.message))
                 .finally(() => setLoading(false));
@@ -128,12 +135,14 @@ export default function DashboardContainer() {
             ),
             getPeak15min(selectedDeviceId, today),
             getDeviceErrors(selectedDeviceId, true),
+            getAlarms(selectedDeviceId, true),
         ])
-            .then(([realtime, monthly, peak, deviceErrors]) => {
+            .then(([realtime, monthly, peak, deviceErrors, deviceAlarms]) => {
                 setRealtimeData(realtime);
                 setMonthlyData(monthly);
                 setPeakData(peak);
                 setErrors(deviceErrors);
+                setAlarms(deviceAlarms);
             })
             .catch((e) => setError(e.message))
             .finally(() => setLoading(false));
@@ -161,6 +170,14 @@ export default function DashboardContainer() {
         }
     };
 
+    const handleResolveAlarm = async (alarmId: string) => {
+        await resolveAlarm(alarmId);
+        if (selectedDeviceId) {
+            const updated = await getAlarms(selectedDeviceId, true);
+            setAlarms(updated);
+        }
+    };
+
     return (
         <DashboardPresenter
             devices={devices}
@@ -183,7 +200,9 @@ export default function DashboardContainer() {
             energyData={energyData}
             peakData={peakData}
             errors={errors}
+            alarms={alarms}
             onResolveError={handleResolveError}
+            onResolveAlarm={handleResolveAlarm}
             loading={loading}
             error={error}
         />

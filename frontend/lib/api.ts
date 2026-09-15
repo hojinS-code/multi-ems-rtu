@@ -11,6 +11,7 @@ import type {
     Metric,
     EnvMetric,
     Phase,
+    Alarm,
 } from "./types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -102,4 +103,20 @@ export interface EnergyResponse {
 
 export function getEnergy(deviceId: string, year: number, month: number): Promise<EnergyResponse> {
     return fetchJson(`/measurements/energy/${deviceId}?year=${year}&month=${month}`);
+}
+
+export function getAlarms(
+    deviceId: string,
+    unresolvedOnly: boolean = false
+): Promise<Alarm[]> {
+    return fetchJson(`/alarms/${deviceId}?unresolved_only=${unresolvedOnly}`);
+}
+
+export async function resolveAlarm(alarmId: string): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}/alarms/${alarmId}/resolve`, {
+        method: "PATCH",
+    });
+    if (!res.ok) {
+        throw new Error(`알람 해결 처리 실패 (status ${res.status})`);
+    }
 }

@@ -1,4 +1,4 @@
-import type { Device, Metric, EnvMetric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError, EnvironmentMeasurement, EnvironmentMonthlyPoint } from "@/lib/types";
+import type { Device, Metric, EnvMetric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError, EnvironmentMeasurement, EnvironmentMonthlyPoint, Alarm } from "@/lib/types";
 import type { EnergyResponse } from "@/lib/api";
 import DeviceSelector from "./DeviceSelector";
 import MetricDropdown from "./MetricDropdown";
@@ -10,6 +10,7 @@ import MonthlyChart from "./MonthlyChart";
 import Peak15minChart from "./Peak15minChart";
 import EnergyChart from "./EnergyChart";
 import ErrorLogPanel from "./ErrorLogPanel";
+import AlarmLogPanel from "./AlarmLogPanel";
 import { EnvironmentRealtimeChart, EnvironmentMonthlyChart } from "./EnvironmentChart";
 
 interface DashboardPresenterProps {
@@ -33,7 +34,9 @@ interface DashboardPresenterProps {
     energyData: EnergyResponse | null;
     peakData: PeakPoint[];
     errors: DeviceError[];
+    alarms: Alarm[];
     onResolveError: (errorId: string) => Promise<void>;
+    onResolveAlarm: (alarmId: string) => Promise<void>;
     loading: boolean;
     error: string | null;
 }
@@ -59,7 +62,9 @@ export default function DashboardPresenter({
     energyData,
     peakData,
     errors,
+    alarms,
     onResolveError,
+    onResolveAlarm,
     loading,
     error,
 }: DashboardPresenterProps) {
@@ -267,6 +272,11 @@ export default function DashboardPresenter({
                             <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
                                 <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">미해결 에러</h2>
                                 <ErrorLogPanel errors={errors} onResolve={onResolveError} />
+                            </section>
+
+                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">미해결 알람</h2>
+                                <AlarmLogPanel alarms={alarms} onResolve={onResolveAlarm} />
                             </section>
                         </>
                     )}

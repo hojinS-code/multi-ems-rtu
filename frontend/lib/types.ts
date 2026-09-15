@@ -7,6 +7,8 @@ export type Metric =
 export type ErrorType = "connection_failed" | "read_failed" | "unknown_device_type";
 export type EnvMetric = "temperature" | "humidity" | "illuminance";
 export type Phase = "l1" | "l2" | "l3";
+export type AlarmType = "over_voltage" | "under_voltage" | "over_current" | "over_power" | "phase_imbalance";
+export type AlarmSeverity = "warning" | "critical";
 
 export interface Device {
     id: string;
@@ -89,4 +91,14 @@ export interface MonthlyPhasePoint {
 export interface PeakPoint {
     time: string;
     value: number | null;
+}
+
+export interface Alarm {
+    id: string;
+    device_id: string;
+    alarm_type: AlarmType;
+    severity: AlarmSeverity;
+    message: string;
+    occurred_at: string;
+    resolved_at: string | null;
 }
