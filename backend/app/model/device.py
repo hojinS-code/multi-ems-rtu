@@ -22,6 +22,6 @@ class Device(Base):
     
     __table_args__ = (
         CheckConstraint("device_type IN ('single_phase', 'three_phase', 'environment')",name="ck_device_type"),
-        CheckConstraint("protocol IN ('TCP', 'RTU')", name="ck_protocol"),
+        CheckConstraint("protocol IN ('TCP', 'RTU', 'SERIAL')", name="ck_protocol"),
         CheckConstraint("slave_id BETWEEN 1 AND 247", name="ck_slave_id_range"),
     )

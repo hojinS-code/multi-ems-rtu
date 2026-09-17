@@ -5,7 +5,7 @@ from typing import Optional
 class DeviceBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100, description="장비 이름")
     device_type: str = Field(..., pattern="^(single_phase|three_phase|environment)$",description="single_phase, three_phase, environment 중 하나")
-    protocol: str = Field(..., pattern="^(TCP|RTU)$", description="TCP 또는 RTU만 허용")
+    protocol: str = Field(..., pattern="^(TCP|RTU|SERIAL)$", description="TCP, RTU, SERIAL 중 하나")
     
     serial_port: Optional[str] = Field(None, description="RTU 전용, 예: /dev/ttyUSB0")
     baudrate: Optional[int] = Field(None, description="RTU 전용, 예: 9600")

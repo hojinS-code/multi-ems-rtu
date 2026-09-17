@@ -14,6 +14,7 @@ from config import settings
 from services.alarm_service import check_alarms
 from model.environment_measurement import EnvironmentMeasurement
 from pymodbus.client.mixin import ModbusClientMixin
+from adapters.fs600r_serial import FS600RReader
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,12 @@ def create_reader(device: Device) -> ModbusReader:
             host=device.host,
             port=device.port,
             slave_id=device.slave_id
+        )
+    elif device.protocol == "SERIAL":
+        return FS600RReader(
+            port=device.serial_port,
+            baudrate=device.baudrate,
+            station_id=device.slave_id,
         )
     raise ValueError(f"지원하지 않는 protocol: {device.protocol}")
 
@@ -73,12 +80,8 @@ def poll_and_save(device: Device, db: Session) -> None:
         _record_error(db, device.id, "unknown_device_type", str(e))
         return
 
-    if device.device_type == "three_phase":
+    if device.device_type in ("three_phase", "single_phase", "environment"):
         raw = None
-    elif device.device_type == "single_phase":
-        raw = None
-    elif device.device_type == "environment":
-        raw = poll_with_retry(reader, address=0, count=10)
     else:
         message = f"알 수 없는 device_type: {device.device_type}"
         logger.error(message)
@@ -158,12 +161,21 @@ def poll_and_save(device: Device, db: Session) -> None:
             )
 
         elif device.device_type == "environment":
+            try:
+                with reader:
+                    values = reader.read_all()
+            except (ConnectionError, IOError) as e:
+                message = f"FS-600R 연결 실패: {e}"
+                logger.error(f"device_id={device.id} {message}")
+                _record_error(db, device.id, "connection_failed", message)
+                return
+            
             record = EnvironmentMeasurement(
                 device_id=device.id,
                 timestamp=now,
-                temperature=raw[0] / 10,
-                humidity=raw[1] / 10,
-                illuminance=raw[2],
+                temperature=values["temperature"],
+                humidity=values["humidity"],
+                illuminance=values["illuminance"],
             )
 
         else:
