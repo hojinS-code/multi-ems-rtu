@@ -111,8 +111,8 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
         const { range, setRange, containerRef } = useWheelZoom(chartData.length);
 
         return (
-            <div ref={containerRef} style={{ cursor: "zoom-in" }}>
-                <ResponsiveContainer width="100%" height={500}>
+            <div ref={containerRef} style={{ cursor: "zoom-in", height: "40vh" }}>
+                <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="time" />
@@ -149,8 +149,8 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
     const { range, setRange, containerRef } = useWheelZoom(chartData.length);
 
     return (
-        <div ref={containerRef} style={{ cursor: "zoom-in" }}>
-            <ResponsiveContainer width="100%" height={300}>
+        <div ref={containerRef} style={{ cursor: "zoom-in", height: "40vh" }}>
+            <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="time" />

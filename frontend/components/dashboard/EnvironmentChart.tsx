@@ -33,15 +33,17 @@ export function EnvironmentRealtimeChart({ metric, data }: EnvironmentRealtimeCh
     }));
 
     return (
-        <ResponsiveContainer width="100%" height={500}>
-            <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#059669" dot={false} name="값" />
-            </LineChart>
-        </ResponsiveContainer>
+        <div style={{ height: "40vh" }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="value" stroke="#059669" dot={false} name="값" />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
     );
 }
 
@@ -52,14 +54,16 @@ export function EnvironmentMonthlyChart({ data, granularity }: EnvironmentMonthl
     }));
 
     return (
-        <ResponsiveContainer width="100%" height={450}>
-            <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#059669" dot={false} name="일 평균" />
-            </LineChart>
-        </ResponsiveContainer>
+        <div style={{ height: "40vh" }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="value" stroke="#059669" dot={false} name="일 평균" />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
     );
 }

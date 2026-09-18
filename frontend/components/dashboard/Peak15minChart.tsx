@@ -7,14 +7,15 @@ interface Peak15minChartProps {
 
 export default function Peak15minChart({ data }: Peak15minChartProps) {
     return (
-        <ResponsiveContainer width="100%" height={500}>
-            <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" interval={7} />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#f97316" name="15분 피크 유효전력" />
-            </BarChart>
-        </ResponsiveContainer>
+        <div style={{ height: "40vh" }}>
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" interval={7} />
+                    <YAxis />
+                    <Tooltip /><Bar dataKey="value" fill="#f97316" name="15분 피크 유효전력" />
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
     );
 }

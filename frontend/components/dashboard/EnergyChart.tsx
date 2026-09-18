@@ -21,15 +21,17 @@ export default function EnergyChart({ data }: EnergyChartProps) {
             <p className="text-lg font-semibold mb-3">
                 이번 달 총 사용량:<span className="text-blue-600">{data.total_kwh.toLocaleString()} kWh</span>
             </p>
-            <ResponsiveContainer width="100%" height={450}>
-                <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="kwh" stroke="#059669" dot={false} name="일일 사용량 (kWh)" />
-                </LineChart>
-            </ResponsiveContainer>
+            <div style={{ height: "40vh" }}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="kwh" stroke="#059669" dot={false} name="일일 사용량 (kWh)" />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
 }

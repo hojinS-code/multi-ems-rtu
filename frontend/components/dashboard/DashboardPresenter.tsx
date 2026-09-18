@@ -71,14 +71,14 @@ export default function DashboardPresenter({
     const isEnvironment = selectedDevice?.device_type === "environment";
 
     return (
-        <div className="min-h-screen bg-[var(--background)]">
+        <div className="min-h-screen bg-[var(--background)] overflow-x-hidden">
             <header className="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-4">
                 <h1 className="text-xl font-bold text-[var(--foreground)]">Multi-EMS-RTU 대시보드</h1>
             </header>
 
-            <div className="flex">
+            <div className="flex min-w-0">
                 {/* 왼쪽 사이드바 */}
-                <aside className="w-64 shrink-0 border-r border-[var(--border)] bg-[var(--surface)] p-5 space-y-6">
+                <aside className="basis-64 min-w-[160px] w-0 shrink border-r border-[var(--border)] bg-[var(--surface)] p-5 space-y-6">
                     <div>
                         <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">장비 선택</p>
                         <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
@@ -102,7 +102,7 @@ export default function DashboardPresenter({
                 </aside>
 
                 {/* 오른쪽 메인 영역 */}
-                <main className="flex-1 p-6 space-y-6">
+                <main className="flex-1 min-w-0 p-6 space-y-6">
                     {error && <p className="text-[var(--status-critical)] text-sm">에러: {error}</p>}
                     {loading && <p className="text-[var(--foreground-muted)] text-sm">불러오는 중...</p>}
 
@@ -110,8 +110,8 @@ export default function DashboardPresenter({
                         <>
                             {isEnvironment ? (
                                 <>
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-                                        <div className="flex items-center justify-between mb-3">
+                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
+                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                                             <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">실시간 그래프</h2>
                                             <MetricDropdown
                                                 deviceType={selectedDevice.device_type}
@@ -122,10 +122,10 @@ export default function DashboardPresenter({
                                         <EnvironmentRealtimeChart metric={selectedMetric as EnvMetric} data={envRealtimeData} />
                                     </section>
 
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-                                        <div className="flex items-center justify-between mb-3">
+                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
+                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                                             <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">월별 그래프</h2>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-wrap">
                                                 <select
                                                     value={selectedYear}
                                                     onChange={(e) => onSelectYear(Number(e.target.value))}
@@ -167,10 +167,10 @@ export default function DashboardPresenter({
                                     </section>
                                 </>
                             ) : selectedMetric === "energy" ? (
-                                <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-                                    <div className="flex items-center justify-between mb-3">
+                                <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
+                                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                                         <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">전력량 (kWh)</h2>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             <MetricDropdown
                                                 deviceType={selectedDevice.device_type}
                                                 selectedMetric={selectedMetric}
@@ -200,12 +200,12 @@ export default function DashboardPresenter({
                                 </section>
                             ) : (
                                 <>
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
                                         <MetricReadout device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
                                     </section>
 
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-                                        <div className="flex items-center justify-between mb-3">
+                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
+                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                                             <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">실시간 그래프</h2>
                                             <MetricDropdown
                                                 deviceType={selectedDevice.device_type}
@@ -216,10 +216,10 @@ export default function DashboardPresenter({
                                         <RealtimeChart device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
                                     </section>
 
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
-                                        <div className="flex items-center justify-between mb-3">
+                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
+                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                                             <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">월별 그래프</h2>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-wrap">
                                                 <select
                                                     value={selectedYear}
                                                     onChange={(e) => onSelectYear(Number(e.target.value))}
@@ -263,18 +263,18 @@ export default function DashboardPresenter({
                             )}
 
                             {!isEnvironment && (
-                                <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                                <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
                                     <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">15분 피크전력량 (유효전력 기준)</h2>
                                     <Peak15minChart data={peakData} />
                                 </section>
                             )}
 
-                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
                                 <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">미해결 에러</h2>
                                 <ErrorLogPanel errors={errors} onResolve={onResolveError} />
                             </section>
 
-                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5">
+                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
                                 <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">미해결 알람</h2>
                                 <AlarmLogPanel alarms={alarms} onResolve={onResolveAlarm} />
                             </section>
