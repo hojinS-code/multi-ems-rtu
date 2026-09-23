@@ -122,7 +122,7 @@ export default function DashboardPresenter({
                                         <EnvironmentRealtimeChart metric={selectedMetric as EnvMetric} data={envRealtimeData} />
                                     </section>
 
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
+                                    <section className="bg-[var(--surface)] border b[var(--border)] rounded-lg p-5 min-w-0">
                                         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                                             <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">월별 그래프</h2>
                                             <div className="flex items-center gap-2 flex-wrap">

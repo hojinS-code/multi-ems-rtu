@@ -120,3 +120,23 @@ export async function resolveAlarm(alarmId: string): Promise<void> {
         throw new Error(`알람 해결 처리 실패 (status ${res.status})`);
     }
 }
+
+export async function resolveAllDeviceErrors(deviceId: string): Promise<{ resolved_count: number }> {
+    const res = await fetch(`${API_BASE_URL}/device-errors/${deviceId}/resolve-all`, {
+        method: "PATCH",
+    });
+    if (!res.ok) {
+        throw new Error(`전체 에러 해결 처리 실패 (status ${res.status})`);
+    }
+    return res.json();
+}
+
+export async function resolveAllAlarms(deviceId: string): Promise<{ resolved_count: number }> {
+    const res = await fetch(`${API_BASE_URL}/alarms/${deviceId}/resolve-all`, {
+        method: "PATCH",
+    });
+    if (!res.ok) {
+        throw new Error(`전체 알람 해결 처리 실패 (status ${res.status})`);
+    }
+    return res.json();
+}

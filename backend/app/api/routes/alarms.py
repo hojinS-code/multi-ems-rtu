@@ -40,3 +40,23 @@ def resolve_alarm(alarm_id: uuid.UUID, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(alarm)
     return alarm
+
+@router.patch("/{device_id}/resolve-all")
+def resolve_all_alarms(device_id: uuid.UUID, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if device is None:
+        raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
+    
+    unresolved = (
+        db.query(Alarm)
+        .filter(Alarm.device_id == device_id, Alarm.resolved_at.is_(None))
+        .all()
+    )
+    
+    now = datetime.utcnow()
+    for alarm in unresolved:
+        alarm.resolved_at = now 
+        
+    db.commit()
+    
+    return {"resolved_count": len(unresolved)}

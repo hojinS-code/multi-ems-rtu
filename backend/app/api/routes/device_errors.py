@@ -41,3 +41,23 @@ def resolve_device_error(error_id: uuid.UUID, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(error)
     return error
+
+@router.patch("/{device_id}/resolve-all")
+def resolve_all_device_errors(device_id: uuid.UUID, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if device is None:
+        raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
+    
+    unresolved = (
+        db.query(DeviceError)
+        .filter(DeviceError.device_id == device_id, DeviceError.resolved_at.is_(None))
+        .all()
+    )
+    
+    now = datetime.utcnow()
+    for error in unresolved:
+        error.resolved_at = now
+        
+    db.commit()
+    
+    return {"resolved_count": len(unresolved)}
