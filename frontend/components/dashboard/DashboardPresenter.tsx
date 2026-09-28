@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { Device, Metric, EnvMetric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError, EnvironmentMeasurement, EnvironmentMonthlyPoint, Alarm } from "@/lib/types";
 import type { EnergyResponse } from "@/lib/api";
 import DeviceSelector from "./DeviceSelector";
@@ -11,6 +12,8 @@ import Peak15minChart from "./Peak15minChart";
 import EnergyChart from "./EnergyChart";
 import ErrorLogPanel from "./ErrorLogPanel";
 import AlarmLogPanel from "./AlarmLogPanel";
+import ViewMenu from "./ViewMenu";
+import type { DashboardView } from "./ViewMenu";
 import { EnvironmentRealtimeChart, EnvironmentMonthlyChart } from "./EnvironmentChart";
 
 interface DashboardPresenterProps {
@@ -21,12 +24,14 @@ interface DashboardPresenterProps {
     selectedMonth: number;
     granularity: "day" | "hour" | "minute";
     selectedDate: string;
+    activeView: DashboardView;
     onSelectDevice: (deviceId: number) => void;
     onSelectMetric: (metric: string) => void;
     onSelectYear: (year: number) => void;
     onSelectMonth: (month: number) => void;
     onSelectGranularity: (granularity: "day" | "hour" | "minute") => void;
     onSelectDate: (date: string) => void;
+    onSelectView: (view: DashboardView) => void;
     realtimeData: (SinglePhaseMeasurement | ThreePhaseMeasurement)[];
     monthlyData: (MonthlyPoint | MonthlyPhasePoint)[];
     envRealtimeData: EnvironmentMeasurement[];
@@ -41,6 +46,10 @@ interface DashboardPresenterProps {
     error: string | null;
 }
 
+const CARD = "bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0";
+const SELECT = "border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]";
+const TITLE = "text-sm font-semibold text-[var(--foreground-muted)]";
+
 export default function DashboardPresenter({
     devices,
     selectedDevice,
@@ -49,12 +58,14 @@ export default function DashboardPresenter({
     selectedMonth,
     granularity,
     selectedDate,
+    activeView,
     onSelectDevice,
     onSelectMetric,
     onSelectYear,
     onSelectMonth,
     onSelectGranularity,
     onSelectDate,
+    onSelectView,
     realtimeData,
     monthlyData,
     envRealtimeData,
@@ -69,6 +80,152 @@ export default function DashboardPresenter({
     error,
 }: DashboardPresenterProps) {
     const isEnvironment = selectedDevice?.device_type === "environment";
+
+    //온습도조도계에는 15분 피크 화면이 없으므로, 그 화면을 보고 있었다면 실시간으로 되돌린다
+    useEffect(() => {
+        if (isEnvironment && activeView === "peak") {
+            onSelectView("realtime");
+        }
+    }, [isEnvironment, activeView, onSelectView]);
+
+    const periodControls = (
+        <div className="flex items-center gap-2 flex-wrap">
+            <select value={selectedYear} onChange={(e) => onSelectYear(Number(e.target.value))} className={SELECT}>
+                {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
+                    <option key={y} value={y}>{y}년</option>
+                ))}
+            </select>
+            <select value={selectedMonth} onChange={(e) => onSelectMonth(Number(e.target.value))} className={SELECT}>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                    <option key={m} value={m}>{m}월</option>
+                ))}
+            </select>
+            <select
+                value={granularity}
+                onChange={(e) => onSelectGranularity(e.target.value as "day" | "hour" | "minute")}
+                className={SELECT}
+            >
+                <option value="day">일 단위</option>
+                <option value="hour">시간 단위</option>
+                <option value="minute">분 단위</option>
+            </select>
+            {granularity !== "day" && (
+                <input type="date" value={selectedDate} onChange={(e) => onSelectDate(e.target.value)} className={SELECT} />
+            )}
+        </div>
+    );
+
+    const renderContent = () => {
+        if (!selectedDevice) return null;
+
+        // 전력량 지표는 메뉴와 관계업이 전력량 카드 하나만 보여준다
+        if (!isEnvironment && selectedMetric === "energy") {
+            return (
+                <section className={CARD}>
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <h2 className={TITLE}>전력량 (kWh)</h2>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <MetricDropdown
+                                deviceType={selectedDevice.device_type}
+                                selectedMetric={selectedMetric}
+                                onSelect={onSelectMetric}
+                            />
+                            <select value={selectedYear} onChange={(e) => onSelectYear(Number(e.target.value))} className={SELECT}>
+                                {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + 1).map((y) => (
+                                    <option key={y} value={y}>{y}년</option>
+                                ))}
+                            </select>
+                            <select value={selectedMonth} onChange={(e) => onSelectMonth(Number(e.target.value))} className={SELECT}>
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                                    <option key={m} value={m}>{m}월</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    {energyData && <EnergyChart data={energyData} />}
+                </section>
+            );
+        }
+
+        if (activeView === "realtime") {
+            return (
+                <>
+                    {!isEnvironment && (
+                        <section className={CARD}>
+                            <MetricReadout device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
+                        </section>
+                    )}
+                    <section className={CARD}>
+                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                            <h2 className={TITLE}>실시간 그래프</h2>
+                            <MetricDropdown
+                                deviceType={selectedDevice.device_type}
+                                selectedMetric={selectedMetric}
+                                onSelect={onSelectMetric}
+                            />
+                        </div>
+                        {isEnvironment ? (
+                            <EnvironmentRealtimeChart metric={selectedMetric as EnvMetric} data={envRealtimeData} />
+                        ) : (
+                            <RealtimeChart device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
+                        )}
+                    </section>
+                </>
+            );
+        }
+
+        if (activeView === "monthly") {
+            return (
+                <section className={CARD}>
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <h2 className={TITLE}>월별 그래프</h2>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <MetricDropdown
+                                deviceType={selectedDevice.device_type}
+                                selectedMetric={selectedMetric}
+                                onSelect={onSelectMetric}
+                            />
+                            {periodControls}
+                        </div>
+                    </div>
+                    {isEnvironment ? (
+                        <EnvironmentMonthlyChart data={envMonthlyData} granularity={granularity} />
+                    ) : (
+                        <MonthlyChart device={selectedDevice} metric={selectedMetric as Metric} data={monthlyData} granularity={granularity} />
+                    )}
+                </section>
+            );
+        }
+
+        if (activeView === "peak" && !isEnvironment) {
+            return (
+                <section className={CARD}>
+                    <h2 className={`${TITLE} mb-3`}>15분 피크전력량 (유효전력 기준)</h2>
+                    <Peak15minChart data={peakData} />
+                </section>
+            );
+        }
+
+        if (activeView === "errors") {
+            return (
+                <section className={CARD}>
+                    <h2 className={`${TITLE} mb-3`}>미해결 에러</h2>
+                    <ErrorLogPanel errors={errors} onResolve={onResolveError} />
+                </section>
+            );
+        }
+
+        if (activeView === "alarms") {
+            return (
+                <section className={CARD}>
+                    <h2 className={`${TITLE} mb-3`}>미해결 알람</h2>
+                    <AlarmLogPanel alarms={alarms} onResolve={onResolveAlarm} />
+                </section>
+            );
+        }
+
+        return null;
+    };
 
     return (
         <div className="min-h-screen bg-[var(--background)] overflow-x-hidden">
@@ -91,6 +248,19 @@ export default function DashboardPresenter({
 
                     {selectedDevice && (
                         <div>
+                            <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">화면</p>
+                            <ViewMenu
+                                activeView={activeView}
+                                onSelect={onSelectView}
+                                showPeak={!isEnvironment}
+                                errorCount={errors.length}
+                                alarmCount={alarms.length}
+                            />
+                        </div>
+                    )}
+
+                    {selectedDevice && (
+                        <div>
                             <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">지표 바로가기</p>
                             <MetricTree
                                 deviceType={selectedDevice.device_type}
@@ -106,180 +276,7 @@ export default function DashboardPresenter({
                     {error && <p className="text-[var(--status-critical)] text-sm">에러: {error}</p>}
                     {loading && <p className="text-[var(--foreground-muted)] text-sm">불러오는 중...</p>}
 
-                    {selectedDevice && !loading && (
-                        <>
-                            {isEnvironment ? (
-                                <>
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
-                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                                            <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">실시간 그래프</h2>
-                                            <MetricDropdown
-                                                deviceType={selectedDevice.device_type}
-                                                selectedMetric={selectedMetric}
-                                                onSelect={onSelectMetric}
-                                            />
-                                        </div>
-                                        <EnvironmentRealtimeChart metric={selectedMetric as EnvMetric} data={envRealtimeData} />
-                                    </section>
-
-                                    <section className="bg-[var(--surface)] border b[var(--border)] rounded-lg p-5 min-w-0">
-                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                                            <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">월별 그래프</h2>
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <select
-                                                    value={selectedYear}
-                                                    onChange={(e) => onSelectYear(Number(e.target.value))}
-                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                                >
-                                                    {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
-                                                        <option key={y} value={y}>{y}년</option>
-                                                    ))}
-                                                </select>
-                                                <select
-                                                    value={selectedMonth}
-                                                    onChange={(e) => onSelectMonth(Number(e.target.value))}
-                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                                >
-                                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                                                        <option key={m} value={m}>{m}월</option>
-                                                    ))}
-                                                </select>
-                                                <select
-                                                    value={granularity}
-                                                    onChange={(e) => onSelectGranularity(e.target.value as "day" | "hour" | "minute")}
-                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                                >
-                                                    <option value="day">일 단위</option>
-                                                    <option value="hour">시간 단위</option>
-                                                    <option value="minute">분 단위</option>
-                                                </select>
-                                                {granularity !== "day" && (
-                                                    <input
-                                                        type="date"
-                                                        value={selectedDate}
-                                                        onChange={(e) => onSelectDate(e.target.value)}
-                                                        className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                        <EnvironmentMonthlyChart data={envMonthlyData} granularity={granularity} />
-                                    </section>
-                                </>
-                            ) : selectedMetric === "energy" ? (
-                                <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
-                                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                                        <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">전력량 (kWh)</h2>
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <MetricDropdown
-                                                deviceType={selectedDevice.device_type}
-                                                selectedMetric={selectedMetric}
-                                                onSelect={onSelectMetric}
-                                            />
-                                            <select
-                                                value={selectedYear}
-                                                onChange={(e) => onSelectYear(Number(e.target.value))}
-                                                className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                            >
-                                                {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
-                                                    <option key={y} value={y}>{y}년</option>
-                                                ))}
-                                            </select>
-                                            <select
-                                                value={selectedMonth}
-                                                onChange={(e) => onSelectMonth(Number(e.target.value))}
-                                                className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                            >
-                                                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                                                    <option key={m} value={m}>{m}월</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    {energyData && <EnergyChart data={energyData} />}
-                                </section>
-                            ) : (
-                                <>
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
-                                        <MetricReadout device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
-                                    </section>
-
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
-                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                                            <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">실시간 그래프</h2>
-                                            <MetricDropdown
-                                                deviceType={selectedDevice.device_type}
-                                                selectedMetric={selectedMetric}
-                                                onSelect={onSelectMetric}
-                                            />
-                                        </div>
-                                        <RealtimeChart device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
-                                    </section>
-
-                                    <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
-                                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                                            <h2 className="text-sm font-semibold text-[var(--foreground-muted)]">월별 그래프</h2>
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <select
-                                                    value={selectedYear}
-                                                    onChange={(e) => onSelectYear(Number(e.target.value))}
-                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                                >
-                                                    {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
-                                                        <option key={y} value={y}>{y}년</option>
-                                                    ))}
-                                                </select>
-                                                <select
-                                                    value={selectedMonth}
-                                                    onChange={(e) => onSelectMonth(Number(e.target.value))}
-                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                                >
-                                                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                                                        <option key={m} value={m}>{m}월</option>
-                                                    ))}
-                                                </select>
-                                                <select
-                                                    value={granularity}
-                                                    onChange={(e) => onSelectGranularity(e.target.value as "day" | "hour" | "minute")}
-                                                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                                >
-                                                    <option value="day">일 단위</option>
-                                                    <option value="hour">시간 단위</option>
-                                                    <option value="minute">분 단위</option>
-                                                </select>
-                                                {granularity !== "day" && (
-                                                    <input
-                                                        type="date"
-                                                        value={selectedDate}
-                                                        onChange={(e) => onSelectDate(e.target.value)}
-                                                        className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                        <MonthlyChart device={selectedDevice} metric={selectedMetric as Metric} data={monthlyData} granularity={granularity} />
-                                    </section>
-                                </>
-                            )}
-
-                            {!isEnvironment && (
-                                <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
-                                    <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">15분 피크전력량 (유효전력 기준)</h2>
-                                    <Peak15minChart data={peakData} />
-                                </section>
-                            )}
-
-                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
-                                <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">미해결 에러</h2>
-                                <ErrorLogPanel errors={errors} onResolve={onResolveError} />
-                            </section>
-
-                            <section className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0">
-                                <h2 className="text-sm font-semibold text-[var(--foreground-muted)] mb-3">미해결 알람</h2>
-                                <AlarmLogPanel alarms={alarms} onResolve={onResolveAlarm} />
-                            </section>
-                        </>
-                    )}
+                    {!loading && renderContent()}
                 </main>
             </div>
         </div>

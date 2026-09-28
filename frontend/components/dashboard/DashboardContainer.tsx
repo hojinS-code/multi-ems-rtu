@@ -17,6 +17,7 @@ import {
     resolveAlarm,
 } from "@/lib/api";
 import DashboardPresenter from "./DashboardPresenter";
+import type { DashboardView } from "./ViewMenu";
 
 const AUTO_REFRESH_MS = 60000;
 
@@ -24,6 +25,7 @@ export default function DashboardContainer() {
     const [devices, setDevices] = useState<Device[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
     const [selectedMetric, setSelectedMetric] = useState<string>("voltage");
+    const [activeView, setActiveView] = useState<DashboardView>("realtime");
 
     const now = new Date();
     const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
@@ -193,12 +195,14 @@ export default function DashboardContainer() {
             onSelectMonth={setSelectedMonth}
             onSelectGranularity={setGranularity}
             onSelectDate={setSelectedDate}
+            onSelectView={setActiveView}
             realtimeData={realtimeData}
             monthlyData={monthlyData}
             envRealtimeData={envRealtimeData}
             envMonthlyData={envMonthlyData}
             energyData={energyData}
             peakData={peakData}
+            activeView={activeView}
             errors={errors}
             alarms={alarms}
             onResolveError={handleResolveError}

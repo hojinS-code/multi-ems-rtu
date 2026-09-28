@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, WheelEvent, useRef } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Brush } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { Device, Metric, MonthlyPoint, MonthlyPhasePoint, Phase } from "@/lib/types";
 
 interface MonthlyChartProps {
@@ -108,12 +108,13 @@ export default function MonthlyChart({ device, metric, data, granularity }: Mont
       l3: point.l3,
     }));
 
-    const { range, setRange, containerRef } = useWheelZoom(chartData.length);
+    const { range, containerRef } = useWheelZoom(chartData.length);
+    const visibleData = chartData.slice(range[0], range[1] + 1);
 
     return (
       <div ref={containerRef} style={{ cursor: "zoom-in", height: "40vh" }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
+          <LineChart data={visibleData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" />
             <YAxis />
@@ -122,18 +123,6 @@ export default function MonthlyChart({ device, metric, data, granularity }: Mont
             <Line type="monotone" dataKey="l1" stroke="#dc2626" dot={false} name="L1상" hide={!visiblePhases.has("l1")} />
             <Line type="monotone" dataKey="l2" stroke="#16a34a" dot={false} name="L2상" hide={!visiblePhases.has("l2")} />
             <Line type="monotone" dataKey="l3" stroke="#2563eb" dot={false} name="L3상" hide={!visiblePhases.has("l3")} />
-            <Brush
-              dataKey="date"
-              height={30}
-              stroke="#2563eb"
-              startIndex={range[0]}
-              endIndex={range[1]}
-              onChange={(r) => {
-                if (r.startIndex !== undefined && r.endIndex !== undefined) {
-                  setRange([r.startIndex, r.endIndex])
-                }
-              }}
-            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -145,29 +134,19 @@ export default function MonthlyChart({ device, metric, data, granularity }: Mont
     value: point.value,
   }));
 
-  const { range, setRange, containerRef } = useWheelZoom(chartData.length);
+  const { range, containerRef } = useWheelZoom(chartData.length);
+  const visibleData = chartData.slice(range[0], range[1] + 1);
 
   return (
     <div ref={containerRef} style={{ cursor: "zoom-in", height: "40vh" }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData}>
+        <LineChart data={visibleData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
           <Line type="monotone" dataKey="value" stroke="#2563eb" dot={false} name="일 평균" />
-          <Brush
-            dataKey="date"
-            height={30}
-            stroke="#2563eb"
-            startIndex={range[0]}
-            endIndex={range[1]}
-            onChange={(r) => {
-              if (r.startIndex !== undefined && r.endIndex !== undefined) {
-                setRange([r.startIndex, r.endIndex]);
-              }
-            }}
-          />
+
         </LineChart>
       </ResponsiveContainer>
     </div>
