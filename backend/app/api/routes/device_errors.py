@@ -1,5 +1,4 @@
 #에러 이력조회 API
-import uuid
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -13,7 +12,7 @@ router = APIRouter(prefix="/device-errors", tags=["device_errors"])
 
 @router.get("/{device_id}", response_model=list[DeviceErrorResponse])
 def list_device_errors(
-    device_id: uuid.UUID,
+    device_id: int,
     unresolved_only: bool = False,
     db: Session = Depends(get_db),
 ):
@@ -29,7 +28,7 @@ def list_device_errors(
     return query.order_by(DeviceError.occurred_at.desc()).all()
 
 @router.patch("/{error_id}/resolve", response_model=DeviceErrorResponse)
-def resolve_device_error(error_id: uuid.UUID, db: Session = Depends(get_db)):
+def resolve_device_error(error_id: int, db: Session = Depends(get_db)):
     error = db.query(DeviceError).filter(DeviceError.id == error_id).first()
     if error is None:
         raise HTTPException(status_code=404, detail="에러 기록을 찾을 수 없습니다")
@@ -43,7 +42,7 @@ def resolve_device_error(error_id: uuid.UUID, db: Session = Depends(get_db)):
     return error
 
 @router.patch("/{device_id}/resolve-all")
-def resolve_all_device_errors(device_id: uuid.UUID, db: Session = Depends(get_db)):
+def resolve_all_device_errors(device_id: int, db: Session = Depends(get_db)):
     device = db.query(Device).filter(Device.id == device_id).first()
     if device is None:
         raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")

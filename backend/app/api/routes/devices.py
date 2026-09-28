@@ -1,4 +1,3 @@
-import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -38,14 +37,14 @@ def list_devices(db: Session = Depends(get_db)):
     return db.query(Device).all()
 
 @router.get("/{device_id}", response_model=DeviceResponse)
-def get_device(device_id: uuid.UUID, db: Session = Depends(get_db)):
+def get_device(device_id: int, db: Session = Depends(get_db)):
     device = db.query(Device).filter(Device.id == device_id).first()
     if device is None:
         raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
     return device
 
 @router.get("/{device_id}/status")
-def get_device_status(device_id: uuid.UUID, db: Session = Depends(get_db)):
+def get_device_status(device_id: int, db: Session = Depends(get_db)):
     device = db.query(Device).filter(Device.id == device_id).first()
     if device is None:
         raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
@@ -57,7 +56,7 @@ def get_device_status(device_id: uuid.UUID, db: Session = Depends(get_db)):
     }
     
 @router.delete("/{device_id}", status_code=204)
-def delete_device(device_id: uuid.UUID, db: Session = Depends(get_db)):
+def delete_device(device_id: int, db: Session = Depends(get_db)):
     device = db.query(Device).filter(Device.id == device_id).first()
     if device is None:
         raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")

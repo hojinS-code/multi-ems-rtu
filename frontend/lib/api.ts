@@ -28,12 +28,12 @@ export function getDevices(): Promise<Device[]> {
     return fetchJson<Device[]>("/devices");
 }
 
-export function getDevice(deviceId: string): Promise<Device> {
+export function getDevice(deviceId: number): Promise<Device> {
     return fetchJson<Device>(`/devices/${deviceId}`);
 }
 
 export function getRealtimeMeasurements(
-    deviceId: string,
+    deviceId: number,
     metric: Metric,
     minutes: number = 30
 ): Promise<(SinglePhaseMeasurement | ThreePhaseMeasurement)[]> {
@@ -41,7 +41,7 @@ export function getRealtimeMeasurements(
 }
 
 export function getMonthlyMeasurements(
-    deviceId: string,
+    deviceId: number,
     metric: Metric,
     year: number,
     month: number,
@@ -53,14 +53,14 @@ export function getMonthlyMeasurements(
 }
 
 export function getEnvironmentRealtime(
-    deviceId: string,
+    deviceId: number,
     minutes: number = 30
 ): Promise<EnvironmentMeasurement[]> {
     return fetchJson(`/measurements/environment/realtime/${deviceId}?minutes=${minutes}`);
 }
 
 export function getEnvironmentMonthly(
-    deviceId: string,
+    deviceId: number,
     metric: EnvMetric,
     year: number,
     month: number,
@@ -71,18 +71,18 @@ export function getEnvironmentMonthly(
     return fetchJson(`/measurements/environment/monthly/${deviceId}?metric=${metric}&year=${year}&month=${month}&granularity=${granularity}${dateParam}`);
 }
 
-export function getPeak15min(deviceId: string, date: string): Promise<PeakPoint[]> {
+export function getPeak15min(deviceId: number, date: string): Promise<PeakPoint[]> {
     return fetchJson(`/measurements/peak-15min/${deviceId}?date=${date}`);
 }
 
 export function getDeviceErrors(
-    deviceId: string,
+    deviceId: number,
     unresolvedOnly: boolean = false
 ): Promise<DeviceError[]> {
     return fetchJson(`/device-errors/${deviceId}?unresolved_only=${unresolvedOnly}`);
 }
 
-export async function resolveDeviceError(errorId: string): Promise<void> {
+export async function resolveDeviceError(errorId: number): Promise<void> {
     const res = await fetch(`${API_BASE_URL}/device-errors/${errorId}/resolve`, {
         method: "PATCH",
     });
@@ -101,18 +101,18 @@ export interface EnergyResponse {
     total_kwh: number;
 }
 
-export function getEnergy(deviceId: string, year: number, month: number): Promise<EnergyResponse> {
+export function getEnergy(deviceId: number, year: number, month: number): Promise<EnergyResponse> {
     return fetchJson(`/measurements/energy/${deviceId}?year=${year}&month=${month}`);
 }
 
 export function getAlarms(
-    deviceId: string,
+    deviceId: number,
     unresolvedOnly: boolean = false
 ): Promise<Alarm[]> {
     return fetchJson(`/alarms/${deviceId}?unresolved_only=${unresolvedOnly}`);
 }
 
-export async function resolveAlarm(alarmId: string): Promise<void> {
+export async function resolveAlarm(alarmId: number): Promise<void> {
     const res = await fetch(`${API_BASE_URL}/alarms/${alarmId}/resolve`, {
         method: "PATCH",
     });
@@ -121,7 +121,7 @@ export async function resolveAlarm(alarmId: string): Promise<void> {
     }
 }
 
-export async function resolveAllDeviceErrors(deviceId: string): Promise<{ resolved_count: number }> {
+export async function resolveAllDeviceErrors(deviceId: number): Promise<{ resolved_count: number }> {
     const res = await fetch(`${API_BASE_URL}/device-errors/${deviceId}/resolve-all`, {
         method: "PATCH",
     });
@@ -131,7 +131,7 @@ export async function resolveAllDeviceErrors(deviceId: string): Promise<{ resolv
     return res.json();
 }
 
-export async function resolveAllAlarms(deviceId: string): Promise<{ resolved_count: number }> {
+export async function resolveAllAlarms(deviceId: number): Promise<{ resolved_count: number }> {
     const res = await fetch(`${API_BASE_URL}/alarms/${deviceId}/resolve-all`, {
         method: "PATCH",
     });

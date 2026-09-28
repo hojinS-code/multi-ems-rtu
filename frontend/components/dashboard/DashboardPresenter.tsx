@@ -21,7 +21,7 @@ interface DashboardPresenterProps {
     selectedMonth: number;
     granularity: "day" | "hour" | "minute";
     selectedDate: string;
-    onSelectDevice: (deviceId: string) => void;
+    onSelectDevice: (deviceId: number) => void;
     onSelectMetric: (metric: string) => void;
     onSelectYear: (year: number) => void;
     onSelectMonth: (month: number) => void;
@@ -35,8 +35,8 @@ interface DashboardPresenterProps {
     peakData: PeakPoint[];
     errors: DeviceError[];
     alarms: Alarm[];
-    onResolveError: (errorId: string) => Promise<void>;
-    onResolveAlarm: (alarmId: string) => Promise<void>;
+    onResolveError: (errorId: number) => Promise<void>;
+    onResolveAlarm: (alarmId: number) => Promise<void>;
     loading: boolean;
     error: string | null;
 }

@@ -5,7 +5,7 @@ import type { DeviceError } from "@/lib/types";
 
 interface ErrorLogPanelProps {
     errors: DeviceError[];
-    onResolve: (errorId: string) => Promise<void>;
+    onResolve: (errorId: number) => Promise<void>;
 }
 
 const ERROR_TYPE_LABELS: Record<DeviceError["error_type"], string> = {
@@ -24,13 +24,13 @@ function formatDateTime(timestamp: string): string {
 }
 
 export default function ErrorLogPanel({ errors, onResolve }: ErrorLogPanelProps) {
-    const [resolvingId, setResolvingId] = useState<string | null>(null);
+    const [resolvingId, setResolvingId] = useState<number | null>(null);
 
     if (errors.length === 0) {
         return <p className="text-sm text-gray-500">현재 미해결 에러가 없습니다.</p>;
     }
 
-    const handleResolve = async (errorId: string) => {
+    const handleResolve = async (errorId: number) => {
         setResolvingId(errorId);
         try {
             await onResolve(errorId);

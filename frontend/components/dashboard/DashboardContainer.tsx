@@ -22,7 +22,7 @@ const AUTO_REFRESH_MS = 60000;
 
 export default function DashboardContainer() {
     const [devices, setDevices] = useState<Device[]>([]);
-    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+    const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
     const [selectedMetric, setSelectedMetric] = useState<string>("voltage");
 
     const now = new Date();
@@ -162,7 +162,7 @@ export default function DashboardContainer() {
         return () => clearInterval(interval);
     }, [fetchData, selectedDeviceId]);
 
-    const handleResolveError = async (errorId: string) => {
+    const handleResolveError = async (errorId: number) => {
         await resolveDeviceError(errorId);
         if (selectedDeviceId) {
             const updated = await getDeviceErrors(selectedDeviceId, true);
@@ -170,7 +170,7 @@ export default function DashboardContainer() {
         }
     };
 
-    const handleResolveAlarm = async (alarmId: string) => {
+    const handleResolveAlarm = async (alarmId: number) => {
         await resolveAlarm(alarmId);
         if (selectedDeviceId) {
             const updated = await getAlarms(selectedDeviceId, true);

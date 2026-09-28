@@ -2,8 +2,8 @@ import type { Device } from "@/lib/types";
 
 interface DeviceSelectorProps {
     devices: Device[];
-    selectedDeviceId: string | null;
-    onSelect: (deviceId: string) => void;
+    selectedDeviceId: number | null;
+    onSelect: (deviceId: number) => void;
 }
 
 const DEVICE_TYPE_LABELS: Record<string, string> = {
@@ -16,7 +16,7 @@ export default function DeviceSelector({ devices, selectedDeviceId, onSelect }: 
     return (
         <select
             value={selectedDeviceId ?? ""}
-            onChange={(e) => onSelect(e.target.value)}
+            onChange={(e) => onSelect(Number(e.target.value))}
             className="border rounded px-3 py-2 text-sm"
         >
             {devices.map((device) => (

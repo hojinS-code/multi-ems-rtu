@@ -1,12 +1,10 @@
-import uuid
 from sqlalchemy import Column, String, Boolean, Integer, CheckConstraint
-from sqlalchemy.dialects.postgresql import UUID
 from db.session import Base
 
 class Device(Base):
     __tablename__ = "devices"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     device_type = Column(String, nullable=False)            #"single_phase" or "three_phase"
     protocol = Column(String, nullable=False)               #"TCU" or "RTU"

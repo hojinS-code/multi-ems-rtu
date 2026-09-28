@@ -1,10 +1,9 @@
-import uuid
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Optional
 
 class SinglePhaseMeasurementBase(BaseModel):
-    device_id: uuid.UUID
+    device_id: int
     timestamp: datetime
     
     voltage: Optional[float] = Field(None, ge=0)
@@ -18,13 +17,13 @@ class SinglePhaseMeasurementCreate(SinglePhaseMeasurementBase):
     pass
 
 class SinglePhaseMeasurementResponse(SinglePhaseMeasurementBase):
-    id: uuid.UUID
+    id: int
     
     class Config:
         from_attributes = True
         
 class ThreePhaseMeasurementBase(BaseModel):
-    device_id: uuid.UUID
+    device_id: int
     timestamp: datetime
     
     voltage_l1: Optional[float] = Field(None, ge=0)
@@ -42,13 +41,13 @@ class ThreePhaseMeasurementCreate(ThreePhaseMeasurementBase):
     pass
 
 class ThreePhaseMeasurementResponse(ThreePhaseMeasurementBase):
-    id: uuid.UUID
+    id: int
     
     class Config:
         from_attributes = True
         
 class EnvironmentMeasurementBase(BaseModel):
-    device_id: uuid.UUID
+    device_id: int
     timestamp: datetime
     
     temperature: Optional[float] = None
@@ -59,7 +58,7 @@ class EnvironmentMeasurementCreate(EnvironmentMeasurementBase):
     pass
 
 class EnvironmentMeasurementResponse(EnvironmentMeasurementBase):
-    id: uuid.UUID
+    id: int
     
     class Config:
         from_attributes = True

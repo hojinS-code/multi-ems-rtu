@@ -1,14 +1,12 @@
-import uuid
-from sqlalchemy import Column, String, DateTime, ForeignKey, Text, Index
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Index
 from datetime import datetime
 from db.session import Base
 
 class DeviceError(Base):
     __tablename__="device_errors"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id", ondelete="CASCADE"), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(Integer, ForeignKey("devices.id", ondelete="CASCADE"), nullable=False)
     
     error_type = Column(String, nullable=False)
     message = Column(Text, nullable=False)

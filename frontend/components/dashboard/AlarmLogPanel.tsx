@@ -5,7 +5,7 @@ import type { Alarm } from "@/lib/types";
 
 interface AlarmLogPanelProps {
     alarms: Alarm[];
-    onResolve: (alarmId: string) => Promise<void>;
+    onResolve: (alarmId: number) => Promise<void>;
 }
 
 const ALARM_TYPE_LABELS: Record<Alarm["alarm_type"], string> = {
@@ -36,13 +36,13 @@ function formatDateTime(timestamp: string): string {
 }
 
 export default function AlarmLogPanel({ alarms, onResolve }: AlarmLogPanelProps) {
-    const [resolvingId, setResolvingId] = useState<string | null>(null);
+    const [resolvingId, setResolvingId] = useState<number | null>(null);
 
     if (alarms.length === 0) {
         return <p className="text-sm text-[var(--foreground-muted)]">현재 미해결 알람이 없습니다.</p>
     }
 
-    const handleResolve = async (alarmId: string) => {
+    const handleResolve = async (alarmId: number) => {
         setResolvingId(alarmId);
         try {
             await onResolve(alarmId);

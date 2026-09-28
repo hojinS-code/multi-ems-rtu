@@ -1,10 +1,8 @@
-import uuid
 from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, literal_column
-
 
 from db.session import get_db
 from model.device import Device
@@ -29,7 +27,7 @@ KST = timezone(timedelta(hours=9))
 #실시간 측정값 조회 API
 @router.get("/realtime/{device_id}")
 def get_realtime_measurements(
-    device_id: uuid.UUID,
+    device_id: int,
     metric: str = Query(..., description="voltage, current, power_factor, active_power, reactive_power 중 하나"),
     minutes: int = Query(30, ge=1, le=1440, description="최근 몇 분간 데이터를 가져올지"),
     db: Session = Depends(get_db),
@@ -76,7 +74,7 @@ def get_realtime_measurements(
 #월별 조회 API추가
 @router.get("/monthly/{device_id}")
 def get_monthly_measurements(
-    device_id: uuid.UUID,
+    device_id: int,
     metric: str = Query(..., description="voltage, current, power_factor, active_power, reactive_power 중 하나"),
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
@@ -179,7 +177,7 @@ def get_monthly_measurements(
 #15min-peak 전력량 API 
 @router.get("/peak-15min/{device_id}")
 def get_peak_15min(
-    device_id: uuid.UUID,
+    device_id: int,
     date: str = Query(..., description="YYYY-MM-DD 형식"),
     db: Session = Depends(get_db),
 ):
@@ -223,7 +221,7 @@ def get_peak_15min(
     
 @router.get("/energy/{device_id}")
 def get_energy(
-    device_id:uuid.UUID,
+    device_id: int,
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),
     db: Session = Depends(get_db),
@@ -272,7 +270,7 @@ def get_energy(
 
 @router.get("/environment/realtime/{device_id}", response_model=list[EnvironmentMeasurementResponse])
 def get_environment_realtime(
-    device_id: uuid.UUID,
+    device_id: int,
     minutes: int = Query(30, ge=1, le=1440),
     db: Session = Depends(get_db),  
 ):
@@ -295,7 +293,7 @@ def get_environment_realtime(
 
 @router.get("/environment/monthly/{device_id}")
 def get_environment_monthly(
-    device_id: uuid.UUID,
+    device_id: int,
     metric: str = Query(..., description="temperature, humidity, illuminance 중 하나"),
     year: int = Query(..., ge=2000, le=2100),
     month: int = Query(..., ge=1, le=12),

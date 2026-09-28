@@ -1,4 +1,3 @@
-import uuid
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -20,7 +19,7 @@ class DeviceCreate(DeviceBase):
     pass
 
 class DeviceResponse(DeviceBase):
-    id: uuid.UUID
+    id: int
     is_active: bool
     
     class Config:

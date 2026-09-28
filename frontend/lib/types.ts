@@ -11,7 +11,7 @@ export type AlarmType = "over_voltage" | "under_voltage" | "over_current" | "ove
 export type AlarmSeverity = "warning" | "critical";
 
 export interface Device {
-    id: string;
+    id: number;
     name: string;
     device_type: DeviceType;
     protocol: Protocol;
@@ -24,8 +24,8 @@ export interface Device {
 }
 
 export interface DeviceError {
-    id: string;
-    device_id: string;
+    id: number;
+    device_id: number;
     error_type: ErrorType;
     message: string;
     occurred_at: string;
@@ -34,8 +34,8 @@ export interface DeviceError {
 
 // GET /measurements/realtime/{device_id} 응답 (단상)
 export interface SinglePhaseMeasurement {
-    id: string;
-    device_id: string;
+    id: number;
+    device_id: number;
     timestamp: string;
     voltage: number | null;
     current: number | null;
@@ -46,8 +46,8 @@ export interface SinglePhaseMeasurement {
 
 // GET /measurements/realtime/{device_id} 응답 (3상)
 export interface ThreePhaseMeasurement {
-    id: string;
-    device_id: string;
+    id: number;
+    device_id: number;
     timestamp: string;
     voltage_l1: number | null;
     voltage_l2: number | null;
@@ -61,8 +61,8 @@ export interface ThreePhaseMeasurement {
 }
 
 export interface EnvironmentMeasurement {
-    id: string;
-    device_id: string;
+    id: number;
+    device_id: number;
     timestamp: string;
     temperature: number | null;
     humidity: number | null;
@@ -94,8 +94,8 @@ export interface PeakPoint {
 }
 
 export interface Alarm {
-    id: string;
-    device_id: string;
+    id: number;
+    device_id: number;
     alarm_type: AlarmType;
     severity: AlarmSeverity;
     message: string;

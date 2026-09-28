@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -12,7 +11,7 @@ router = APIRouter(prefix="/alarms", tags=["alarms"])
 
 @router.get("/{device_id}", response_model=list[AlarmResponse])
 def list_alarms(
-    device_id: uuid.UUID,
+    device_id: int,
     unresolved_only: bool = False,
     db: Session = Depends(get_db),
 ):
@@ -28,7 +27,7 @@ def list_alarms(
     return query.order_by(Alarm.occurred_at.desc()).all()
         
 @router.patch("/{alarm_id}/resolve", response_model=AlarmResponse)
-def resolve_alarm(alarm_id: uuid.UUID, db: Session = Depends(get_db)):
+def resolve_alarm(alarm_id: int, db: Session = Depends(get_db)):
     alarm = db.query(Alarm).filter(Alarm.id == alarm_id).first()
     if alarm is None:
         raise HTTPException(status_code=404, detail="alarm not found")
@@ -42,7 +41,7 @@ def resolve_alarm(alarm_id: uuid.UUID, db: Session = Depends(get_db)):
     return alarm
 
 @router.patch("/{device_id}/resolve-all")
-def resolve_all_alarms(device_id: uuid.UUID, db: Session = Depends(get_db)):
+def resolve_all_alarms(device_id: int, db: Session = Depends(get_db)):
     device = db.query(Device).filter(Device.id == device_id).first()
     if device is None:
         raise HTTPException(status_code=404, detail="장비를 찾을 수 없습니다")
