@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { Device, Metric, EnvMetric, SinglePhaseMeasurement, ThreePhaseMeasurement, MonthlyPoint, MonthlyPhasePoint, PeakPoint, DeviceError, EnvironmentMeasurement, EnvironmentMonthlyPoint, Alarm } from "@/lib/types";
 import type { EnergyResponse } from "@/lib/api";
 import DeviceSelector from "./DeviceSelector";
+import DeviceIdList from "./DeviceIdList";
 import MetricDropdown from "./MetricDropdown";
 import MetricTree from "./MetricTree";
 import DeviceStatusBadge from "./DeviceStatusBadge";
@@ -266,11 +267,13 @@ export default function DashboardPresenter({
 
                     {selectedDevice && (
                         <div>
-                            <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">지표 바로가기</p>
-                            <MetricTree
-                                deviceType={selectedDevice.device_type}
-                                selectedMetric={selectedMetric}
-                                onSelect={onSelectMetric}
+                            <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">장비 ID</p>
+                            <DeviceIdList
+                                devices={devices.filter(
+                                    (d) => d.device_type === selectedDevice.device_type && d.wiring === selectedDevice.wiring
+                                )}
+                                selectedDeviceId={selectedDevice?.id ?? null}
+                                onSelect={onSelectDevice}
                             />
                         </div>
                     )}
