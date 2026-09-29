@@ -16,10 +16,16 @@ class Device(Base):
     
     slave_id = Column(Integer, nullable=False)
     location = Column(String, nullable=True)
+    wiring = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     
     __table_args__ = (
         CheckConstraint("device_type IN ('single_phase', 'three_phase', 'environment')",name="ck_device_type"),
         CheckConstraint("protocol IN ('TCP', 'RTU', 'SERIAL')", name="ck_protocol"),
         CheckConstraint("slave_id BETWEEN 1 AND 247", name="ck_slave_id_range"),
+        CheckConstraint("wiring IS NULL OR wiring IN ('3W', '4W')", name="ck_wiring"),
+        CheckConstraint(
+            "(device_type = 'three_phase') OR (wiring IS NULL)",
+            name="ck_wiring_only_three_phase"
+        ),
     )

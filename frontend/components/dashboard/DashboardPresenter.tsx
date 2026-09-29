@@ -131,7 +131,7 @@ export default function DashboardPresenter({
                                 onSelect={onSelectMetric}
                             />
                             <select value={selectedYear} onChange={(e) => onSelectYear(Number(e.target.value))} className={SELECT}>
-                                {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + 1).map((y) => (
+                                {Array.from({ length: 5 }, (_, i) => selectedYear - 2 + i).map((y) => (
                                     <option key={y} value={y}>{y}년</option>
                                 ))}
                             </select>
@@ -240,8 +240,13 @@ export default function DashboardPresenter({
                         <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">장비 선택</p>
                         <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
                         {selectedDevice && (
-                            <div className="mt-2">
+                            <div className="mt-2 flex flex-wrap gap-2">
                                 <DeviceStatusBadge device={selectedDevice} unresolvedErrors={errors} />
+                                {selectedDevice.wiring && (
+                                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-[var(--accent)] text-white">
+                                        {selectedDevice.wiring === "3W" ? "3상3선" : "3상4선"}
+                                    </span>
+                                )}
                             </div>
                         )}
                     </div>

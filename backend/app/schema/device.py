@@ -13,6 +13,7 @@ class DeviceBase(BaseModel):
     
     slave_id: int = Field(..., ge=1,le=247, description="Modbus 표준상 1-247 범위")
     location: Optional[str] = Field(None, max_length=200, description="장비 설치 위치")
+    wiring: Optional[str] = Field(None, pattern="^(3W|4W)$", description="3상 전용, 3W(3상3선) 또는 4W(3상4선)")
     
     
 class DeviceCreate(DeviceBase):
