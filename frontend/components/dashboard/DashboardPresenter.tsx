@@ -15,6 +15,7 @@ import ErrorLogPanel from "./ErrorLogPanel";
 import AlarmLogPanel from "./AlarmLogPanel";
 import ViewMenu from "./ViewMenu";
 import type { DashboardView } from "./ViewMenu";
+import SystemLogPanel from "./SystemLogPanel";
 import { EnvironmentRealtimeChart, EnvironmentMonthlyChart } from "./EnvironmentChart";
 
 interface DashboardPresenterProps {
@@ -225,6 +226,15 @@ export default function DashboardPresenter({
             );
         }
 
+        if (activeView === "logs") {
+            return (
+                <section className={CARD}>
+                    <h2 className={`${TITLE} mb-3`}>시스템 로그</h2>
+                    <SystemLogPanel />
+                </section>
+            );
+        }
+
         return null;
     };
 
@@ -282,9 +292,9 @@ export default function DashboardPresenter({
                 {/* 오른쪽 메인 영역 */}
                 <main className="flex-1 min-w-0 p-6 space-y-6">
                     {error && <p className="text-[var(--status-critical)] text-sm">에러: {error}</p>}
-                    {loading && <p className="text-[var(--foreground-muted)] text-sm">불러오는 중...</p>}
-
-                    {!loading && renderContent()}
+                    <div className={loading ? "opacity-50 transition-opacity" : "transition-opacity"}>
+                        {renderContent()}
+                    </div>
                 </main>
             </div>
         </div>

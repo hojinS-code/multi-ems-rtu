@@ -140,3 +140,11 @@ export async function resolveAllAlarms(deviceId: number): Promise<{ resolved_cou
     }
     return res.json();
 }
+
+export interface LogsResponse {
+    lines: string[];
+}
+
+export function getLogs(lines: number = 200): Promise<LogsResponse> {
+    return fetchJson(`/logs?lines=${lines}`);
+}

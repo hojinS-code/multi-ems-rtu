@@ -1,6 +1,6 @@
 "use client";
 
-export type DashboardView = "realtime" | "monthly" | "peak" | "errors" | "alarms";
+export type DashboardView = "realtime" | "monthly" | "peak" | "errors" | "alarms" | "logs";
 
 interface ViewMenuProps {
     activeView: DashboardView;
@@ -20,6 +20,7 @@ export default function ViewMenu({ activeView, onSelect, showPeak, errorCount, a
     }
     items.push({ key: "errors", label: "미해결 에러", count: errorCount });
     items.push({ key: "alarms", label: "미해결 알람", count: alarmCount });
+    items.push({ key: "logs", label: "시스템 로그" });
 
     return (
         <nav className="space-y-1">
