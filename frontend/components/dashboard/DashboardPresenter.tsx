@@ -43,7 +43,9 @@ interface DashboardPresenterProps {
     errors: DeviceError[];
     alarms: Alarm[];
     onResolveError: (errorId: number) => Promise<void>;
+    onResolveAllErrors: () => Promise<void>;
     onResolveAlarm: (alarmId: number) => Promise<void>;
+    onResolveAllAlarms: () => Promise<void>;
     loading: boolean;
     error: string | null;
 }
@@ -77,7 +79,9 @@ export default function DashboardPresenter({
     errors,
     alarms,
     onResolveError,
+    onResolveAllErrors,
     onResolveAlarm,
+    onResolveAllAlarms,
     loading,
     error,
 }: DashboardPresenterProps) {
@@ -212,7 +216,7 @@ export default function DashboardPresenter({
             return (
                 <section className={CARD}>
                     <h2 className={`${TITLE} mb-3`}>미해결 에러</h2>
-                    <ErrorLogPanel errors={errors} onResolve={onResolveError} />
+                    <ErrorLogPanel errors={errors} onResolve={onResolveError} onResolveAll={onResolveAllErrors} />
                 </section>
             );
         }
@@ -221,7 +225,7 @@ export default function DashboardPresenter({
             return (
                 <section className={CARD}>
                     <h2 className={`${TITLE} mb-3`}>미해결 알람</h2>
-                    <AlarmLogPanel alarms={alarms} onResolve={onResolveAlarm} />
+                    <AlarmLogPanel alarms={alarms} onResolve={onResolveAlarm} onResolveAll={onResolveAllAlarms} />
                 </section>
             );
         }

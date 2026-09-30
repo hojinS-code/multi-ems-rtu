@@ -6,6 +6,7 @@ import type { Alarm } from "@/lib/types";
 interface AlarmLogPanelProps {
     alarms: Alarm[];
     onResolve: (alarmId: number) => Promise<void>;
+    onResolveAll: () => Promise<void>;
 }
 
 const ALARM_TYPE_LABELS: Record<Alarm["alarm_type"], string> = {
@@ -35,12 +36,9 @@ function formatDateTime(timestamp: string): string {
     });
 }
 
-export default function AlarmLogPanel({ alarms, onResolve }: AlarmLogPanelProps) {
+export default function AlarmLogPanel({ alarms, onResolve, onResolveAll }: AlarmLogPanelProps) {
     const [resolvingId, setResolvingId] = useState<number | null>(null);
-
-    if (alarms.length === 0) {
-        return <p className="text-sm text-[var(--foreground-muted)]">현재 미해결 알람이 없습니다.</p>
-    }
+    const [resolvingAll, setResolvingAll] = useState(false);
 
     const handleResolve = async (alarmId: number) => {
         setResolvingId(alarmId);
@@ -51,27 +49,51 @@ export default function AlarmLogPanel({ alarms, onResolve }: AlarmLogPanelProps)
         }
     };
 
+    const handleResolveAll = async () => {
+        setResolvingAll(true);
+        try {
+            await onResolveAll();
+        } finally {
+            setResolvingAll(false);
+        }
+    };
+
+    if (alarms.length === 0) {
+        return <p className="text-sm text-[var(--foreground-muted)]">현재 미해결 알람이 없습니다.</p>
+    }
+
     return (
-        <ul className="divide-y divide-[var(--border)]">
-            {alarms.map((alarm) => (
-                <li key={alarm.id} className="flex items-center justify-between py-2 text-sm">
-                    <div>
-                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mr-2 ${SEVERITY_STYLES[alarm.severity]}`}>
-                            {SEVERITY_LABELS[alarm.severity]}
-                        </span>
-                        <span className="font-medium">{ALARM_TYPE_LABELS[alarm.alarm_type]}</span>
-                        <span className="text-[var(--foreground-muted)] ml-2">{formatDateTime(alarm.occurred_at)}</span>
-                        <p className="text-[var(--foreground-muted)]">{alarm.message}</p>
-                    </div>
-                    <button
-                        onClick={() => handleResolve(alarm.id)}
-                        disabled={resolvingId === alarm.id}
-                        className="rounded border border-[var(--border)] px-3 py-1 text-xs hover:bg-[var(--background)] disabled:opacity-50"
-                    >
-                        {resolvingId === alarm.id ? "처리 중..." : "해결 처리"}
-                    </button>
-                </li>
-            ))}
-        </ul>
+        <div>
+            <div className="flex justify-end mb-2">
+                <button
+                    onClick={handleResolveAll}
+                    disabled={resolvingAll}
+                    className="rounded border border-[var(--border)] px-3 py-1 text-xs hover:bg-[var(--background)] disabled:opacity-50"
+                >
+                    {resolvingAll ? "처리 중..." : "전체 해결"}
+                </button>
+            </div>
+            <ul className="divide-y divide-[var(--border)]">
+                {alarms.map((alarm) => (
+                    <li key={alarm.id} className="flex items-center justify-between py-2 text-sm">
+                        <div>
+                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium mr-2 ${SEVERITY_STYLES[alarm.severity]}`}>
+                                {SEVERITY_LABELS[alarm.severity]}
+                            </span>
+                            <span className="font-medium">{ALARM_TYPE_LABELS[alarm.alarm_type]}</span>
+                            <span className="text-[var(--foreground-muted)] ml-2">{formatDateTime(alarm.occurred_at)}</span>
+                            <p className="text-[var(--foreground-muted)]">{alarm.message}</p>
+                        </div>
+                        <button
+                            onClick={() => handleResolve(alarm.id)}
+                            disabled={resolvingId === alarm.id}
+                            className="rounded border border-[var(--border)] px-3 py-1 text-xs hover:bg-[var(--background)] disabled:opacity-50"
+                        >
+                            {resolvingId === alarm.id ? "처리 중..." : "해결 처리"}
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </div>
     );
 }

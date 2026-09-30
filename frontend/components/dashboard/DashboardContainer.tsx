@@ -10,11 +10,13 @@ import {
     getPeak15min,
     getDeviceErrors,
     resolveDeviceError,
+    resolveAllDeviceErrors,
     getEnergy,
     getEnvironmentRealtime,
     getEnvironmentMonthly,
     getAlarms,
     resolveAlarm,
+    resolveAllAlarms,
 } from "@/lib/api";
 import DashboardPresenter from "./DashboardPresenter";
 import type { DashboardView } from "./ViewMenu";
@@ -172,6 +174,13 @@ export default function DashboardContainer() {
         }
     };
 
+    const handleResolveAllErrors = async () => {
+        if (!selectedDeviceId) return;
+        await resolveAllDeviceErrors(selectedDeviceId);
+        const updated = await getDeviceErrors(selectedDeviceId, true);
+        setErrors(updated);
+    };
+
     const handleResolveAlarm = async (alarmId: number) => {
         await resolveAlarm(alarmId);
         if (selectedDeviceId) {
@@ -179,6 +188,13 @@ export default function DashboardContainer() {
             setAlarms(updated);
         }
     };
+
+    const handleResolveAllAlarms = async () => {
+        if (!selectedDeviceId) return;
+        await resolveAllAlarms(selectedDeviceId);
+        const updated = await getAlarms(selectedDeviceId, true);
+        setAlarms(updated);
+    }
 
     return (
         <DashboardPresenter
@@ -206,7 +222,9 @@ export default function DashboardContainer() {
             errors={errors}
             alarms={alarms}
             onResolveError={handleResolveError}
+            onResolveAllErrors={handleResolveAllErrors}
             onResolveAlarm={handleResolveAlarm}
+            onResolveAllAlarms={handleResolveAllAlarms}
             loading={loading}
             error={error}
         />
