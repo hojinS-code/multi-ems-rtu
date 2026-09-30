@@ -246,7 +246,7 @@ export default function DashboardPresenter({
 
             <div className="flex min-w-0">
                 {/* 왼쪽 사이드바 */}
-                <aside className="basis-64 min-w-[160px] w-0 shrink border-r border-[var(--border)] bg-[var(--surface)] p-5 space-y-6">
+                <aside className="basis-64 min-w-[160px] w-0 shrink border-r border-[var(--border)] bg-[var(--surface)] p-5 space-y-6 sticky top-0 self-start h-screen overflow-y-auto">
                     <div>
                         <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">장비 선택</p>
                         <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
