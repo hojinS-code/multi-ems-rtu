@@ -6,7 +6,6 @@ import DeviceIdList from "./DeviceIdList";
 import MetricDropdown from "./MetricDropdown";
 import MetricTree from "./MetricTree";
 import DeviceStatusBadge from "./DeviceStatusBadge";
-import MetricReadout from "./MetricReadout";
 import RealtimeChart from "./RealtimeChart";
 import MonthlyChart from "./MonthlyChart";
 import Peak15minChart from "./Peak15minChart";
@@ -155,28 +154,21 @@ export default function DashboardPresenter({
 
         if (activeView === "realtime") {
             return (
-                <>
-                    {!isEnvironment && (
-                        <section className={CARD}>
-                            <MetricReadout device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
-                        </section>
+                <section className={CARD}>
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <h2 className={TITLE}>실시간 그래프</h2>
+                        <MetricDropdown
+                            deviceType={selectedDevice.device_type}
+                            selectedMetric={selectedMetric}
+                            onSelect={onSelectMetric}
+                        />
+                    </div>
+                    {isEnvironment ? (
+                        <EnvironmentRealtimeChart metric={selectedMetric as EnvMetric} data={envRealtimeData} />
+                    ) : (
+                        <RealtimeChart device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
                     )}
-                    <section className={CARD}>
-                        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-                            <h2 className={TITLE}>실시간 그래프</h2>
-                            <MetricDropdown
-                                deviceType={selectedDevice.device_type}
-                                selectedMetric={selectedMetric}
-                                onSelect={onSelectMetric}
-                            />
-                        </div>
-                        {isEnvironment ? (
-                            <EnvironmentRealtimeChart metric={selectedMetric as EnvMetric} data={envRealtimeData} />
-                        ) : (
-                            <RealtimeChart device={selectedDevice} metric={selectedMetric as Metric} data={realtimeData} />
-                        )}
-                    </section>
-                </>
+                </section>
             );
         }
 
