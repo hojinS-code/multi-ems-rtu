@@ -8,6 +8,7 @@ from adapters.modbus_rtu import ModbusRtuReader
 from adapters.modbus_tcp import ModbusTcpReader
 from model.device import Device
 from model.measurement import SinglePhaseMeasurement, ThreePhaseMeasurement
+from model.device_error import DeviceError
 from config import settings
 from services.alarm_service import check_alarms
 from model.environment_measurement import EnvironmentMeasurement
@@ -58,7 +59,13 @@ def poll_with_retry(reader: ModbusReader, address: int, count: int, input_regist
 
 def _record_error(db: Session, device_id: int, error_type: str, message: str) -> None:
     logger.error(f"device_id={device_id} [{error_type}] {message}")
-
+    error = DeviceError(
+        device_id=device_id,
+        error_type=error_type,
+        message=message,
+    )
+    db.add(error)
+    db.commit()
     
 def _decode_float32(registers: list[int]) -> float:
     return ModbusClientMixin.convert_from_registers(

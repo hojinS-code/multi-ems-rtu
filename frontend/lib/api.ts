@@ -148,3 +148,17 @@ export interface LogsResponse {
 export function getLogs(lines: number = 200): Promise<LogsResponse> {
     return fetchJson(`/logs?lines=${lines}`);
 }
+
+export interface UptimeSegment {
+    status: "up" | "down";
+    start: string;
+    end: string;
+}
+
+export interface UptimeResponse {
+    segments: UptimeSegment[];
+}
+
+export function getUptime(deviceId: number, start: string, end: string): Promise<UptimeResponse> {
+    return fetchJson(`/uptime/${deviceId}?start=${start}&end=${end}`);
+}

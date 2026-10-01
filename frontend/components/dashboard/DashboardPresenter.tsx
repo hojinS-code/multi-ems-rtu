@@ -12,6 +12,7 @@ import Peak15minChart from "./Peak15minChart";
 import EnergyChart from "./EnergyChart";
 import ErrorLogPanel from "./ErrorLogPanel";
 import AlarmLogPanel from "./AlarmLogPanel";
+import UptimePanel from "./UptimePanel";
 import ViewMenu from "./ViewMenu";
 import type { DashboardView } from "./ViewMenu";
 import SystemLogPanel from "./SystemLogPanel";
@@ -231,6 +232,14 @@ export default function DashboardPresenter({
             );
         }
 
+        if (activeView === "uptime") {
+            return (
+                <section className={CARD}>
+                    <h2 className={`${TITLE} mb-3`}>가동 이력</h2>
+                    <UptimePanel deviceId={selectedDevice.id} />
+                </section>
+            );
+        }
         return null;
     };
 
