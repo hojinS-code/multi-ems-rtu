@@ -17,13 +17,25 @@ function formatDateTime(timestamp: string): string {
     });
 }
 
-function formatDuration(start: string, end: string): string {
-    const ms = new Date(end).getTime() - new Date(start).getTime();
-    const minutes = Math.round(ms / 60000);
-    if (minutes < 60) return `${minutes}분`;
-    const hours = Math.floor(minutes / 60);
+function diffMinutes(start: string, end: string): number {
+    return Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000);
+}
+
+function formatMinutes(minutes: number): string {
+    const days = Math.floor(minutes / 1440);
+    const hours = Math.floor((minutes % 1440) / 60);
     const remainMinutes = minutes % 60;
-    return remainMinutes > 0 ? `${hours}시간 ${remainMinutes}분` : `${hours}시간`;
+
+    const parts: string[] = [];
+    if (days > 0) parts.push(`${days}일`);
+    if (hours > 0) parts.push(`${hours}시간`);
+    if (remainMinutes > 0 || parts.length === 0) parts.push(`${remainMinutes}분`);
+    return parts.join(" ");
+}
+
+function formatDuration(start: string, end: string): string {
+    const minutes = diffMinutes(start, end);
+    return formatMinutes(minutes);
 }
 
 export default function UptimePanel({ deviceId }: UptimePanelProps) {
@@ -44,10 +56,14 @@ export default function UptimePanel({ deviceId }: UptimePanelProps) {
     }, [deviceId, start, end]);
 
     const downSegments = segments.filter((s) => s.status === "down");
+    const upSegments = segments.filter((s) => s.status === "up");
+
+    const upMinutes = upSegments.reduce((sum, s) => sum + diffMinutes(s.start, s.end), 0);
+    const downMinutes = downSegments.reduce((sum, s) => sum + diffMinutes(s.start, s.end), 0);
 
     return (
         <div>
-            <div className="flex  items-center gap-2 mb-4 flex-wrap">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
                 <input
                     type="date"
                     value={start}
@@ -68,6 +84,21 @@ export default function UptimePanel({ deviceId }: UptimePanelProps) {
 
             {!loading && !error && (
                 <>
+                    {segments.length > 0 && (
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <p className="text-sm text-[var(--foreground-muted)]">가동 시간</p>
+                                <p className="text-lg font-semibold text-[var(--foreground)]">{formatMinutes(upMinutes)}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-[var(--foreground-muted)]">연결 끊김</p>
+                                <p className="text-lg font-semibold text-[var(--status-critical)]">
+                                    {formatMinutes(downMinutes)} ({downSegments.length}건)
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {downSegments.length === 0 ? (
                         <p className="text-sm text-[var(--foreground-muted)]">
                             이 기간 동안 연결 끊김 이력이 없습니다.
