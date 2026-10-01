@@ -20,7 +20,7 @@ export default function DeviceIdList({ devices, selectedDeviceId, onSelect }: De
                         : "text-[var(--foreground)] hover:bg-[var(--background)]"
                         }`}
                 >
-                    ID {device.slave_id}
+                    ID {device.id}
                 </button>
             ))}
         </nav>
