@@ -227,7 +227,7 @@ export default function DashboardPresenter({
             return (
                 <section className={CARD}>
                     <h2 className={`${TITLE} mb-3`}>시스템 로그</h2>
-                    <SystemLogPanel />
+                    <SystemLogPanel devices={devices} />
                 </section>
             );
         }
@@ -235,7 +235,7 @@ export default function DashboardPresenter({
         if (activeView === "uptime") {
             return (
                 <section className={CARD}>
-                    <h2 className={`${TITLE} mb-3`}>가동 이력</h2>
+                    <h2 className={`${TITLE} mb-3`}>이력 조회</h2>
                     <UptimePanel deviceId={selectedDevice.id} />
                 </section>
             );

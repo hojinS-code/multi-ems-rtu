@@ -21,7 +21,7 @@ export default function ViewMenu({ activeView, onSelect, showPeak, errorCount, a
     items.push({ key: "errors", label: "미해결 에러", count: errorCount });
     items.push({ key: "alarms", label: "미해결 알람", count: alarmCount });
     items.push({ key: "logs", label: "시스템 로그" });
-    items.push({ key: "uptime", label: "가동 이력" });
+    items.push({ key: "uptime", label: "이력 조회" });
 
     return (
         <nav className="space-y-1">
