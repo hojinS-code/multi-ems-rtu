@@ -236,7 +236,12 @@ export default function DashboardPresenter({
             return (
                 <section className={CARD}>
                     <h2 className={`${TITLE} mb-3`}>이력 조회</h2>
-                    <UptimePanel deviceId={selectedDevice.id} />
+                    <UptimePanel
+                        devices={devices.filter(
+                            (d) => d.device_type === selectedDevice.device_type && d.wiring === selectedDevice.wiring
+                        )}
+                        initialDeviceId={selectedDevice.id}
+                    />
                 </section>
             );
         }
@@ -252,24 +257,19 @@ export default function DashboardPresenter({
             <div className="flex min-w-0">
                 {/* 왼쪽 사이드바 */}
                 <aside className="basis-64 min-w-[160px] w-0 shrink border-r border-[var(--border)] bg-[var(--surface)] p-5 space-y-6 sticky top-0 self-start h-screen overflow-y-auto">
-                    <div>
-                        <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">장비 선택</p>
-                        <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
-                        {selectedDevice && (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                                <DeviceStatusBadge device={selectedDevice} unresolvedErrors={errors} />
-                                {selectedDevice.wiring && (
-                                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-[var(--accent)] text-white">
-                                        {selectedDevice.wiring === "3W" ? "3상3선" : "3상4선"}
-                                    </span>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                    {selectedDevice && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            <DeviceStatusBadge device={selectedDevice} unresolvedErrors={errors} />
+                            {selectedDevice.wiring && (
+                                <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-[var(--accent)] text-white">
+                                    {selectedDevice.wiring === "3W" ? "3상3선" : "3상4선"}
+                                </span>
+                            )}
+                        </div>
+                    )}
 
                     {selectedDevice && (
                         <div>
-                            <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">화면</p>
                             <ViewMenu
                                 activeView={activeView}
                                 onSelect={onSelectView}
@@ -296,12 +296,17 @@ export default function DashboardPresenter({
 
                 {/* 오른쪽 메인 영역 */}
                 <main className="flex-1 min-w-0 p-6 space-y-6">
+                    {devices.length > 0 && (
+                        <div className={CARD}>
+                            <DeviceSelector devices={devices} selectedDeviceId={selectedDevice?.id ?? null} onSelect={onSelectDevice} />
+                        </div>
+                    )}
                     {error && <p className="text-[var(--status-critical)] text-sm">에러: {error}</p>}
                     <div className={loading ? "opacity-50 transition-opacity" : "transition-opacity"}>
                         {renderContent()}
                     </div>
                 </main>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

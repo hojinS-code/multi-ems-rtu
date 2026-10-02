@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getUptime } from "@/lib/api";
 import type { UptimeSegment } from "@/lib/api";
+import type { Device } from "@/lib/types";
 
 interface UptimePanelProps {
-    deviceId: number;
+    devices: Device[];
+    initialDeviceId: number;
 }
 
 function formatDateTime(timestamp: string): string {
@@ -38,22 +40,25 @@ function formatDuration(start: string, end: string): string {
     return formatMinutes(minutes);
 }
 
-export default function UptimePanel({ deviceId }: UptimePanelProps) {
+export default function UptimePanel({ devices, initialDeviceId }: UptimePanelProps) {
     const today = new Date().toISOString().slice(0, 10);
+    const [deviceId, setDeviceId] = useState(initialDeviceId);
     const [start, setStart] = useState(today);
     const [end, setEnd] = useState(today);
     const [segments, setSegments] = useState<UptimeSegment[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [searched, setSearched] = useState(false);
 
-    useEffect(() => {
+    const handleSearch = () => {
         setLoading(true);
         setError(null);
+        setSearched(true);
         getUptime(deviceId, start, end)
             .then((res) => setSegments(res.segments))
             .catch((e) => setError(e.message))
             .finally(() => setLoading(false));
-    }, [deviceId, start, end]);
+    };
 
     const downSegments = segments.filter((s) => s.status === "down");
     const upSegments = segments.filter((s) => s.status === "up");
@@ -64,6 +69,17 @@ export default function UptimePanel({ deviceId }: UptimePanelProps) {
     return (
         <div>
             <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <select
+                    value={deviceId}
+                    onChange={(e) => setDeviceId(Number(e.target.value))}
+                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                >
+                    {devices.map((d) => (
+                        <option key={d.id} value={d.id}>
+                            ID {d.id}
+                        </option>
+                    ))}
+                </select>
                 <input
                     type="date"
                     value={start}
@@ -77,12 +93,24 @@ export default function UptimePanel({ deviceId }: UptimePanelProps) {
                     onChange={(e) => setEnd(e.target.value)}
                     className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
                 />
+                <button
+                    onClick={handleSearch}
+                    disabled={loading}
+                    className="rounded bg-[var(--accent)] text-white px-3 py-1.5 text-sm disabled:opacity-50"
+                >
+                    {loading ? "조회 중..." : "조회"}
+                </button>
             </div>
 
-            {loading && <p className="text-sm text-[var(--foreground-muted)]">불러오는 중...</p>}
             {error && <p className="text-sm text-[var(--status-critical)]">에러: {error}</p>}
 
-            {!loading && !error && (
+            {!searched && !error && (
+                <p className="text-sm text-[var(--foreground-muted)]">
+                    장비와 기간을 선택하고 조회 버튼을 눌러주세요.
+                </p>
+            )}
+
+            {searched && !loading && !error && (
                 <>
                     {segments.length > 0 && (
                         <div className="grid grid-cols-2 gap-4 mb-4">
