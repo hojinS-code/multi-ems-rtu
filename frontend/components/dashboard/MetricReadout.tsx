@@ -12,17 +12,12 @@ const METRIC_UNITS: Record<string, string> = {
     power_factor: "",
     active_power: "kW",
     reactive_power: "kvar",
-    power: "kW",
     voltage_l1: "V",
     voltage_l2: "V",
     voltage_l3: "V",
     current_l1: "A",
     current_l2: "A",
     current_l3: "A",
-};
-
-const METRIC_ALIASES: Record<string, string> = {
-    power: "active_power",
 };
 
 const PHASE_METRIC_LABELS: Record<string, string> = {
@@ -63,7 +58,7 @@ export default function MetricReadout({ device, metric, data }: MetricReadoutPro
         );
     }
 
-    const fieldName = METRIC_ALIASES[metric] ?? metric;
+    const fieldName = metric;
     const value = (latest as any)[fieldName] as number | null | undefined;
     const label = PHASE_METRIC_LABELS[metric] ?? metric;
 

@@ -14,12 +14,11 @@ from schema.measurement import EnvironmentMeasurementResponse
 router = APIRouter(prefix="/measurements", tags=["measurements"])
 
 VALID_METRICS = {
-    "voltage", "current", "power_factor", "active_power", "reactive_power", "power",
+    "voltage", "current", "power_factor", "active_power", "reactive_power",
     "voltage_l1", "voltage_l2", "voltage_l3",
     "current_l1", "current_l2", "current_l3",
 }
 VALID_GRANULARITIES = {'day', "hour", "minute" }
-METRIC_ALIASES = {"power": "active_power"}
 ENV_METRICS = {"temperature", "humidity", "illuminance"}
 
 KST = timezone(timedelta(hours=9))
@@ -108,7 +107,7 @@ def get_monthly_measurements(
 
     if device.device_type == "single_phase":
         model = SinglePhaseMeasurement
-        column_name = METRIC_ALIASES.get(metric, metric)
+        column_name = metric
         metric_column = getattr(model, column_name)
         bucket = func.date_trunc(granularity_literal, model.timestamp).label("bucket")
 
@@ -157,7 +156,7 @@ def get_monthly_measurements(
                 for r in results
             ]
         else:
-            column_name = METRIC_ALIASES.get(metric, metric)
+            column_name = metric
             metric_column = getattr(model, column_name)
             results = (
                 db.query(bucket, func.avg(metric_column).label("avg_value"))

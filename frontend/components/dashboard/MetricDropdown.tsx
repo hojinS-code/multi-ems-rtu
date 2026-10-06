@@ -13,7 +13,6 @@ const METRIC_LABELS: Record<Metric, string> = {
     active_power: "유효전력",
     reactive_power: "무효전력",
     energy: "전력량",
-    power: "전력",
     voltage_l1: "전압(L1)",
     voltage_l2: "전압(L2)",
     voltage_l3: "전압(L3)",
@@ -28,7 +27,7 @@ const ENV_METRIC_LABELS: Record<EnvMetric, string> = {
     illuminance: "조도",
 };
 
-const SINGLE_PHASE_METRICS: Metric[] = ["voltage", "current", "power_factor", "active_power", "reactive_power", "power", "energy"];
+const SINGLE_PHASE_METRICS: Metric[] = ["voltage", "current", "power_factor", "active_power", "reactive_power", "energy"];
 
 const THREE_PHASE_ONLY_METRICS: Metric[] = ["voltage_l1", "voltage_l2", "voltage_l3", "current_l1", "current_l2", "current_l3"];
 

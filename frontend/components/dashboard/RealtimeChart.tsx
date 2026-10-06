@@ -73,10 +73,6 @@ function useWheelZoom(length: number) {
     return { range, setRange, containerRef };
 }
 
-const METRIC_ALIASES: Partial<Record<Metric, keyof SinglePhaseMeasurement>> = {
-    power: "active_power"
-};
-
 export default function RealtimeChart({ device, metric, data }: RealtimeChartProps) {
 
     const isPhaseMetric = metric === "voltage" || metric === "current";
@@ -105,7 +101,7 @@ export default function RealtimeChart({ device, metric, data }: RealtimeChartPro
             time: formatTime(m.timestamp),
             value: isIndividualPhaseMetric
                 ? m[metric as keyof ThreePhaseMeasurement]
-                : m[METRIC_ALIASES[metric] ?? (metric as keyof SinglePhaseMeasurement)],
+                : m[metric as keyof SinglePhaseMeasurement],
         }));
 
         const { range, setRange, containerRef } = useWheelZoom(chartData.length);
