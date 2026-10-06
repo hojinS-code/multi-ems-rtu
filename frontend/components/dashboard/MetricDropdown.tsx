@@ -37,7 +37,7 @@ export default function MetricDropdown({ deviceType, selectedMetric, onSelect }:
             <select
                 value={selectedMetric}
                 onChange={(e) => onSelect(e.target.value)}
-                className="border rounded px-3 py-2 text-sm"
+                className="border rounded px-3 py-2 text-sm min-w-0 max-w-full"
             >
                 {Object.keys(ENV_METRIC_LABELS).map((metric) => (
                     <option key={metric} value={metric}>
@@ -56,7 +56,7 @@ export default function MetricDropdown({ deviceType, selectedMetric, onSelect }:
         <select
             value={selectedMetric}
             onChange={(e) => onSelect(e.target.value)}
-            className="border rounded px-3 py-2 text-sm"
+            className="border rounded px-3 py-2 text-sm min-w-0 max-w-full"
         >
             {metricKeys.map((metric) => (
                 <option key={metric} value={metric}>

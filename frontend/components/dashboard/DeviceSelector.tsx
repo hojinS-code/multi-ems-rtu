@@ -17,7 +17,7 @@ export default function DeviceSelector({ devices, selectedDeviceId, onSelect }: 
         <select
             value={selectedDeviceId ?? ""}
             onChange={(e) => onSelect(Number(e.target.value))}
-            className="border rounded px-3 py-2 text-sm"
+            className="border rounded px-3 py-2 text-sm min-w-0 max-w-full"
         >
             {devices.map((device) => (
                 <option key={device.id} value={device.id}>

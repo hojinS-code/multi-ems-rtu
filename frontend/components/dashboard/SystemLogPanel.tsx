@@ -68,7 +68,7 @@ export default function SystemLogPanel({ devices }: SystemLogPanelProps) {
                 <select
                     value={activeTab}
                     onChange={(e) => setActiveTab(e.target.value as LogTab)}
-                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)] min-w-0 max-w-full"
                 >
                     {tabs.map((tab) => (
                         <option key={tab} value={tab}>

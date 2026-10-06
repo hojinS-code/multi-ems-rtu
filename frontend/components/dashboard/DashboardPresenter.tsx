@@ -52,7 +52,7 @@ interface DashboardPresenterProps {
 }
 
 const CARD = "bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0";
-const SELECT = "border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]";
+const SELECT = "border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)] min-w-full";
 const TITLE = "text-sm font-semibold text-[var(--foreground-muted)]";
 
 export default function DashboardPresenter({

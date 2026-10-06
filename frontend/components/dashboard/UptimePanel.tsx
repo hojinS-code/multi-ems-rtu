@@ -72,7 +72,7 @@ export default function UptimePanel({ devices, initialDeviceId }: UptimePanelPro
                 <select
                     value={deviceId}
                     onChange={(e) => setDeviceId(Number(e.target.value))}
-                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)]"
+                    className="border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)] min-w-0 max-w-full"
                 >
                     {devices.map((d) => (
                         <option key={d.id} value={d.id}>
