@@ -52,8 +52,28 @@ interface DashboardPresenterProps {
 }
 
 const CARD = "bg-[var(--surface)] border border-[var(--border)] rounded-lg p-5 min-w-0";
-const SELECT = "border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)] min-w-full";
+const SELECT = "border border-[var(--border)] rounded px-2 py-1.5 text-sm bg-[var(--surface)] min-w-0, max-w-full";
 const TITLE = "text-sm font-semibold text-[var(--foreground-muted)]";
+
+const VIEW_TITLES: Record<DashboardView, string> = {
+    realtime: "실시간 그래프",
+    monthly: "월별 그래프",
+    peak: "15분 피크전력량",
+    errors: "미해결 에러",
+    alarms: "미해결 알람",
+    logs: "시스템 로그",
+    uptime: "이력 조회",
+};
+
+const VIEW_EMPTY_MESSAGES: Record<DashboardView, string> = {
+    realtime: "등록된 장비가 없습니다. 장비를 등록하면 실시간 그래프가 표시됩니다.",
+    monthly: "등록된 장비가 없습니다. 장비를 등록하면 월별 그래프가 표시됩니다.",
+    peak: "등록된 장비가 없습니다. 장비를 등록하면 15분 피크전력량이 표시됩니다.",
+    errors: "현재 미해결 에러가 없습니다.",
+    alarms: "현재 미해결 알람이 없습니다.",
+    logs: "등록된 장비가 없어서 장비별 로그를 구분할 수 없습니다.",
+    uptime: "등록된 장비가 없어서 조회할 이력이 없습니다.",
+};
 
 export default function DashboardPresenter({
     devices,
@@ -128,11 +148,12 @@ export default function DashboardPresenter({
             if (!devicesLoaded || error || devices.length > 0) return null;
             return (
                 <section className={CARD}>
+                    <h2 className={TITLE} mb-3>{VIEW_TITLES[activeView]}</h2>
                     <p className="text-sm text-[var(--foreground-muted)]">
-                        등록된 장비가 없습니다. 장비를 등록하면 이곳에 그래프가 표시됩니다.
+                        {VIEW_EMPTY_MESSAGES[activeView]}
                     </p>
                 </section>
-            )
+            );
         }
 
         // 전력량 지표는 메뉴와 관계업이 전력량 카드 하나만 보여준다
