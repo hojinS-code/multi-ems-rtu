@@ -25,6 +25,7 @@ const AUTO_REFRESH_MS = 60000;
 
 export default function DashboardContainer() {
     const [devices, setDevices] = useState<Device[]>([]);
+    const [devicesLoaded, setDevicesLoaded] = useState(false);
     const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
     const [selectedMetric, setSelectedMetric] = useState<string>("voltage");
     const [activeView, setActiveView] = useState<DashboardView>("realtime");
@@ -59,7 +60,8 @@ export default function DashboardContainer() {
                     setSelectedDeviceId(data[0].id);
                 }
             })
-            .catch((e) => setError(e.message));
+            .catch((e) => setError(e.message))
+            .finally(() => setDevicesLoaded(true));
     }, []);
 
     // 장비가 바뀔 때 지표 기본값을 장비 타입에 맞게 리셋
@@ -199,6 +201,7 @@ export default function DashboardContainer() {
     return (
         <DashboardPresenter
             devices={devices}
+            devicesLoaded={devicesLoaded}
             selectedDevice={selectedDevice}
             selectedMetric={selectedMetric}
             selectedYear={selectedYear}

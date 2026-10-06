@@ -20,6 +20,7 @@ import { EnvironmentRealtimeChart, EnvironmentMonthlyChart } from "./Environment
 
 interface DashboardPresenterProps {
     devices: Device[];
+    devicesLoaded: boolean;
     selectedDevice: Device | null;
     selectedMetric: string;
     selectedYear: number;
@@ -56,6 +57,7 @@ const TITLE = "text-sm font-semibold text-[var(--foreground-muted)]";
 
 export default function DashboardPresenter({
     devices,
+    devicesLoaded,
     selectedDevice,
     selectedMetric,
     selectedYear,
@@ -122,7 +124,16 @@ export default function DashboardPresenter({
     );
 
     const renderContent = () => {
-        if (!selectedDevice) return null;
+        if (!selectedDevice) {
+            if (!devicesLoaded || error || devices.length > 0) return null;
+            return (
+                <section className={CARD}>
+                    <p className="text-sm text-[var(--foreground-muted)]">
+                        등록된 장비가 없습니다. 장비를 등록하면 이곳에 그래프가 표시됩니다.
+                    </p>
+                </section>
+            )
+        }
 
         // 전력량 지표는 메뉴와 관계업이 전력량 카드 하나만 보여준다
         if (!isEnvironment && selectedMetric === "energy") {
@@ -268,30 +279,30 @@ export default function DashboardPresenter({
                         </div>
                     )}
 
-                    {selectedDevice && (
-                        <div>
-                            <ViewMenu
-                                activeView={activeView}
-                                onSelect={onSelectView}
-                                showPeak={!isEnvironment}
-                                errorCount={errors.length}
-                                alarmCount={alarms.length}
-                            />
-                        </div>
-                    )}
+                    <div>
+                        <ViewMenu
+                            activeView={activeView}
+                            onSelect={onSelectView}
+                            showPeak={!isEnvironment}
+                            errorCount={errors.length}
+                            alarmCount={alarms.length}
+                        />
+                    </div>
 
-                    {selectedDevice && (
-                        <div>
-                            <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">장비 ID</p>
-                            <DeviceIdList
-                                devices={devices.filter(
-                                    (d) => d.device_type === selectedDevice.device_type && d.wiring === selectedDevice.wiring
-                                )}
-                                selectedDeviceId={selectedDevice?.id ?? null}
-                                onSelect={onSelectDevice}
-                            />
-                        </div>
-                    )}
+                    <div>
+                        <p className="text-xs font-semibold text-[var(--foreground-muted)] mb-2">장비 ID</p>
+                        <DeviceIdList
+                            devices={
+                                selectedDevice
+                                    ? devices.filter(
+                                        (d) => d.device_type === selectedDevice.device_type && d.wiring === selectedDevice.wiring
+                                    )
+                                    : []
+                            }
+                            selectedDeviceId={selectedDevice?.id ?? null}
+                            onSelect={onSelectDevice}
+                        />
+                    </div>
                 </aside>
 
                 {/* 오른쪽 메인 영역 */}
@@ -306,7 +317,7 @@ export default function DashboardPresenter({
                         {renderContent()}
                     </div>
                 </main>
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
